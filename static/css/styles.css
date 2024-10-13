@@ -1,0 +1,92 @@
+/* styles.css */
+
+/* Arama Formu stili */
+.search-form {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.search-form input[type="text"] {
+    width: 300px;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+}
+
+.search-form button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    background-color: #0056b3;
+    color: white;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.search-form button:hover {
+    background-color: #004494;
+}
+
+/* Sonuç kartı */
+#result {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 10px;
+}
+
+.result-item {
+    margin-bottom: 25px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* Başlık */
+.result-item h3 {
+    font-size: 1.3em;
+    color: #0056b3;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Tablo */
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.result-table th,
+.result-table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.result-table th {
+    background-color: #f1f1f1;
+    color: #333;
+}
+
+
+/* Kart başlıkları ve içerikleri için daha küçük padding ayarları */
+.card-title {
+    font-size: 1rem;
+}
+
+.card-body {
+    padding: 8px; /* İçerik alanını küçültme */
+}
+
+.table-sm th, .table-sm td {
+    padding: 4px; /* Tablo hücrelerini daha kompakt yapma */
+}
+
+#result .card {
+    margin-bottom: 1rem;
+}

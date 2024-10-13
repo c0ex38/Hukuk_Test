@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteri Listesi</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4">Müşteri Listesi</h2>
+        <div class="row" id="result">
+            <!-- Müşteri kartları burada dinamik olarak görünecek -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dinamik veri çekme ve kartları görüntüleme -->
+    <script>
+        // Dinamik veri çekme örneği (örneğin bir API URL'si)
+        async function fetchCustomerData() {
+            try {
+                const response = await fetch('https://api.example.com/customers'); // Dinamik API URL'nizi girin
+                if (!response.ok) throw new Error("Veri alınamadı");
+
+                const customers = await response.json();
+                displayCustomerList(customers);
+            } catch (error) {
+                console.error("Veri çekilirken hata oluştu:", error);
+                document.getElementById('result').innerHTML = '<p>Veri alınamadı. Lütfen daha sonra tekrar deneyin.</p>';
+            }
+        }
+
+        // Müşteri kartlarını oluşturur
+        function displayCustomerList(customers) {
+            const resultsContainer = document.getElementById('result');
+            resultsContainer.innerHTML = ''; // Önceki sonuçları temizle
+
+            if (customers.length > 0) {
+                customers.forEach(customer => {
+                    const customerDiv = document.createElement('div');
+                    customerDiv.className = 'col-md-4'; // Bootstrap kolon sınıfı
+                    customerDiv.innerHTML = `
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${customer.Name} ${customer.Surname}</h5>
+                                <p class="card-text">Müşteri No: ${customer.CustomerCode}</p>
+                                <p class="card-text">Tc No: ${customer.IdentityNum}</p>
+                                <p class="card-text">Telefonlar: ${customer.PhoneList.join(', ')}</p>
+                                <p class="card-text">Baba Adı: ${customer.FatherName}</p>
+                                <p class="card-text">Anne Adı: ${customer.MotherName}</p>
+                            </div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(customerDiv);
+                });
+            } else {
+                resultsContainer.innerHTML = '<p>Hiçbir sonuç bulunamadı.</p>';
+            }
+        }
+
+        // Sayfa yüklendiğinde veriyi çek
+        document.addEventListener('DOMContentLoaded', fetchCustomerData);
+    </script>
+</body>
+</html>
