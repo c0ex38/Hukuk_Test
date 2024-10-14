@@ -27,7 +27,7 @@ firebase_admin.initialize_app(cred, {
 
 
 class LoginWithTokenView(APIView):
-    def post(self, request):
+    def get(self, request):
         # Token'ı URL'den sorgu parametresi olarak al
         token = request.query_params.get("Token")
 
@@ -65,7 +65,7 @@ class LoginWithTokenView(APIView):
             if status_code == 200:
                 username = response_data.get('username')
                 if username:
-                    request.session['user_name'] = username
+                    request.session['username'] = username
                     print(f"Username '{username}' oturuma kaydedildi.")
 
                     # Kullanıcının admin olup olmadığını kontrol et
@@ -75,7 +75,7 @@ class LoginWithTokenView(APIView):
                     save_user_to_firebase(username, is_admin)
 
                 # Başarılı yanıt sonrası customer_details sayfasına yönlendir
-                return redirect('/ana_sayfa/')
+                return redirect('/homepage/')
 
             return Response(response_data)  # Başarılı yanıtı döndür
         except Exception as e:
@@ -217,14 +217,14 @@ def replace_none_with_null(data):
 
 
 # Prosedürü çalıştıran fonksiyon
-def run_proc(session_id, user_name, customerCode=None, identityNum=None, name=None, surname=None, fatherName=None,
+def run_proc(session_id, username, customerCode=None, identityNum=None, name=None, surname=None, fatherName=None,
              motherName=None, phone=None):
-    logging.debug(f"run_proc başlatıldı - session_id: {session_id}, user_name: {user_name}")
+    logging.debug(f"run_proc başlatıldı - session_id: {session_id}, username: {username}")
 
     procedure_info = {
         "ProcName": "[360Portal].dbo.CustomerService_getCustomers",
         "Parameters": [
-            {"Name": "ClientId", "Value": user_name},
+            {"Name": "ClientId", "Value": username},
             *([{"Name": "Customercode", "Value": customerCode}] if customerCode else []),
             *([{"Name": "IdentityNum", "Value": identityNum}] if identityNum else []),
             *([{"Name": "Name", "Value": name}] if name else []),
@@ -266,12 +266,12 @@ def customer_search_view(request):
         session_id = session_id_response.json().get("session_id")
 
         # Test için sabit ClientId
-        user_name = "DGNY Y147"  # Buraya sabit bir ClientId değeri girin
+        username = "DGNY Y147"  # Buraya sabit bir ClientId değeri girin
 
-        logging.debug(f"Form verileri alındı - user_name: {user_name}")
+        logging.debug(f"Form verileri alındı - username: {username}")
 
-        # run_proc fonksiyonunu çağır ve sadece user_name'i gönder, diğerlerini None olarak ayarla
-        result = run_proc(session_id, user_name, customerCode=None, identityNum=None, name=None, surname=None,
+        # run_proc fonksiyonunu çağır ve sadece username'i gönder, diğerlerini None olarak ayarla
+        result = run_proc(session_id, username, customerCode=None, identityNum=None, name=None, surname=None,
                           fatherName=None, motherName=None, phone=None)
 
         if result is None:
@@ -384,12 +384,12 @@ def customer_note_view(request):
     return JsonResponse({"error": "Invalid request method."}, status=400)
 
 
-def ana_sayfa_view(request):
+def homepage_view(request):
     # Kullanıcının oturum açıp açmadığını kontrol et
-    user_name = request.session.get('user_name')  # Oturumda saklanan kullanıcı adı
-    is_logged_in = user_name is not None  # Kullanıcının giriş yapıp yapmadığını kontrol et
+    username = request.session.get('username')  # Oturumda saklanan kullanıcı adı
+    is_logged_in = username is not None  # Kullanıcının giriş yapıp yapmadığını kontrol et
 
-    return render(request, 'ana_sayfa.html', {
-        'user_name': user_name,  # Kullanıcı adını şablona gönder
+    return render(request, 'homepage.html', {
+        'username': username,  # Kullanıcı adını şablona gönder
         'is_logged_in': is_logged_in  # Kullanıcının giriş yapıp yapmadığını şablona gönder
     })

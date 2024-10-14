@@ -7,7 +7,7 @@ from .views import (
     customer_search_view,
     add_customer_communication,
     customer_note_view,
-    ana_sayfa_view,
+    homepage_view,
 
 )
 
@@ -18,6 +18,5 @@ urlpatterns = [
     path('customer-search/', customer_search_view, name='customer_search'),
     path('add-customer-communication/', add_customer_communication, name='add_customer_communication'),
     path('add-customer-notes1/', customer_note_view, name='add_customer_notes1'),
-    path('ana_sayfa/', ana_sayfa_view, name='ana_sayfa'),  # Ana sayfa URL'si
-    path('customer-search/', customer_search_view, name='customer_search'),
+    path('homepage/', homepage_view, name='homepage'),  # Ana sayfa URL'si
 ]
