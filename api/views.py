@@ -66,7 +66,7 @@ class LoginWithTokenView(APIView):
                 username = response_data.get('username')
                 if username:
                     request.session['username'] = username
-                    print(f"Username '{username}' oturuma kaydedildi.")
+                    print(f"username '{username}' oturuma kaydedildi.")
 
                     # Kullanıcının admin olup olmadığını kontrol et
                     is_admin = request.user.has_perm('modules.customers.admin')
@@ -117,7 +117,7 @@ def get_session_id(request):
         "ServerName": "176.236.176.155",
         "DatabaseName": "V3_TalipsanAS",
         "UserGroupCode": "DGNM",
-        "UserName": "M999",
+        "username": "M999",
         "Password": "30083009"
     }
 
@@ -236,7 +236,10 @@ def run_proc(session_id, username, customerCode=None, identityNum=None, name=Non
     }
 
     procedure_url = f"http://176.236.176.155:1260/(S({session_id}))/IntegratorService/RunProc"
+
+    # procedure_info ve procedure_url içeriğini loglayın
     logging.debug(f"Prosedür URL'si: {procedure_url}")
+    logging.debug(f"Giden Parametreler: {json.dumps(procedure_info, indent=2)}")
 
     try:
         response = requests.post(procedure_url, json=procedure_info)
@@ -256,6 +259,10 @@ def customer_search_view(request):
     result = None
 
     if request.method == 'GET':
+        username = request.session.get('username')
+        if not username:
+            return JsonResponse({"error": "Kullanıcı oturum açmamış."}, status=403)
+
         # Her çağrıda session_id almak için get-session-id endpointine istek gönder
         session_id_response = requests.get("http://127.0.0.1:8000/api/get-session-id/")
 
@@ -264,15 +271,11 @@ def customer_search_view(request):
             return JsonResponse({"error": "Session ID alınamadı."}, status=500)
 
         session_id = session_id_response.json().get("session_id")
-
-        # Test için sabit ClientId
-        username = "DGNY Y147"  # Buraya sabit bir ClientId değeri girin
-
+        print(username)
         logging.debug(f"Form verileri alındı - username: {username}")
 
-        # run_proc fonksiyonunu çağır ve sadece username'i gönder, diğerlerini None olarak ayarla
-        result = run_proc(session_id, username, customerCode=None, identityNum=None, name=None, surname=None,
-                          fatherName=None, motherName=None, phone=None)
+        # run_proc fonksiyonunu çağır ve username'i kullan
+        result = run_proc(session_id, username)
 
         if result is None:
             logging.error("run_proc fonksiyonu başarısız oldu veya boş sonuç döndürdü.")
@@ -301,7 +304,7 @@ def add_customer_communication(request):
         customer_code = data.get("CustomerCode")
         communication_type_code = data.get("CommunicationTypeCode")
         phone = data.get("CommAddress")
-        username = data.get("UserName")
+        username = data.get("username")
 
         # Prosedür bilgisi
         procedure_info = {
@@ -310,7 +313,7 @@ def add_customer_communication(request):
                 {"Name": "CustomerCode", "Value": customer_code},
                 {"Name": "CommunicationTypeCode", "Value": communication_type_code},
                 {"Name": "CommAddress", "Value": phone},
-                {"Name": "UserName", "Value": username},
+                {"Name": "username", "Value": username},
             ]
         }
 
@@ -382,6 +385,68 @@ def customer_note_view(request):
         return JsonResponse(result, status=200)
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
+    
+
+@csrf_exempt
+def get_customer_attributes_list(request, attribute_type_code):
+    # Session ID alma
+    session_id_response = requests.get("http://127.0.0.1:8000/api/get-session-id/")
+    if session_id_response.status_code != 200 or "session_id" not in session_id_response.json():
+        return JsonResponse({"error": "Session ID alınamadı."}, status=500)
+
+    session_id = session_id_response.json().get("session_id")
+
+    # Prosedür bilgisi
+    procedure_info = {
+        "ProcName": "[360Portal].dbo.CustomerService_getCustomerAttributesList",
+        "Parameters": [
+            {"Name": "AttributeTypeCode", "Value": attribute_type_code},
+        ]
+    }
+
+    procedure_url = f"http://176.236.176.155:1260/(S({session_id}))/IntegratorService/RunProc"
+    try:
+        response = requests.post(procedure_url, json=procedure_info)
+        response.raise_for_status()
+        return JsonResponse(response.json(), safe=False, status=200)
+    except requests.exceptions.HTTPError as e:
+        return JsonResponse({"error": f"Prosedür başarısız: {str(e)}"}, status=500)
+
+
+@csrf_exempt
+def add_customer_attribute(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        customer_code = data.get("CustomerCode")
+        attribute_type_code = data.get("AttributeTypeCode")
+        attribute_code = data.get("AttributeCode")
+        username = data.get("username")
+
+        procedure_info = {
+            "ProcName": "[360Portal].dbo.addCustomerAttribute",
+            "Parameters": [
+                {"Name": "Customercode", "Value": customer_code},
+                {"Name": "AttributeTypeCode", "Value": attribute_type_code},
+                {"Name": "AttributeCode", "Value": attribute_code},
+                {"Name": "username", "Value": username}
+            ]
+        }
+
+        session_id_response = requests.get("http://127.0.0.1:8000/api/get-session-id/")
+        if session_id_response.status_code != 200:
+            return JsonResponse({"error": "Session ID alınamadı."}, status=500)
+
+        session_id = session_id_response.json().get("session_id")
+        procedure_url = f"http://176.236.176.155:1260/(S({session_id}))/IntegratorService/RunProc"
+
+        try:
+            response = requests.post(procedure_url, json=procedure_info)
+            response.raise_for_status()
+            return JsonResponse({"success": "Özellik başarıyla güncellendi."})
+        except requests.exceptions.HTTPError as e:
+            return JsonResponse({"error": f"Prosedür başarısız: {str(e)}"}, status=500)
+    
+    return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
 
 
 def homepage_view(request):
@@ -393,3 +458,8 @@ def homepage_view(request):
         'username': username,  # Kullanıcı adını şablona gönder
         'is_logged_in': is_logged_in  # Kullanıcının giriş yapıp yapmadığını şablona gönder
     })
+
+
+def customer_find_view(request):
+    username = request.session.get('username')  # Oturumda saklanan kullanıcı adı
+    return render(request, 'customerFind.html', {'username': username})
