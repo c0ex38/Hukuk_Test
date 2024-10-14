@@ -289,16 +289,19 @@
         <!-- Sekmeler -->
         <ul class="nav nav-tabs mt-4" id="customerTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="notes-tab" data-bs-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="true">Not 1</a>
+                <a class="nav-link active" id="notes-tab" data-bs-toggle="tab" href="#notes1" role="tab" aria-controls="notes" aria-selected="true">Müşteri Notları (1)</a>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link" id="notes2-tab" data-bs-toggle="tab" href="#notes2" role="tab" aria-controls="notes2" aria-selected="false">Not 2</a>
+                <a class="nav-link" id="notes2-tab" data-bs-toggle="tab" href="#notes2" role="tab" aria-controls="notes2" aria-selected="false">Müşteri Notları (2)</a>
             </li>
             <li class="nav-item" role="presentation">
                 <a class="nav-link" id="attributes-tab" data-bs-toggle="tab" href="#attributes" role="tab" aria-controls="attributes" aria-selected="false">Müşteri Özellikleri</a>
+                <button id="addAttributeButton" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAttributeModal" disabled>
+                    Ekle
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link" id="messages-tab" data-bs-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Mesajlar</a>
+                <a class="nav-link" id="messages-tab" data-bs-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Müşteri Mesajları</a>
             </li>
             <li class="nav-item" role="presentation">
                 <a class="nav-link" id="addresses-tab" data-bs-toggle="tab" href="#addresses" role="tab" aria-controls="addresses" aria-selected="false">Adresler</a>
@@ -308,7 +311,7 @@
         <!-- Sekme İçerikleri -->
         <div class="tab-content mt-3" id="customerTabsContent">
             <!-- Müşteri Notları 1 -->
-            <div class="tab-pane fade show active" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+            <div class="tab-pane fade show active" id="notes1" role="tabpanel" aria-labelledby="notes-tab">
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered" id="customer-notes-table">
                         <thead>
@@ -351,6 +354,8 @@
             <!-- Müşteri Özellikleri -->
             <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
                 <div class="table-responsive">
+                    <div class="d-flex justify-content-between align-items-center">
+                    </div>
                     <table class="table table-sm table-bordered" id="customer-attributes-table">
                         <thead>
                             <tr>
@@ -360,12 +365,50 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="3" class="table-placeholder">Veri bekleniyor...</td>
+                                <td colspan="2" class="table-placeholder">Veri bekleniyor...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- Müşteri Özellikleri Ekle Modal -->
+            <div class="modal fade" id="addAttributeModal" tabindex="-1" aria-labelledby="addAttributeModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addAttributeModalLabel">Yeni Özellik Ekle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addAttributeForm">
+                                <div class="mb-3">
+                                    <label for="attributeType" class="form-label">Özellik Tipi</label>
+                                    <select id="attributeType" class="form-select" onchange="fetchAttributeList()" required>
+                                        <option value="">Seçiniz...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="attributeTypeDescription" class="form-label">Özellik Tipi Açıklaması</label>
+                                    <span id="attributeTypeDescription">Bilgi yok</span> <!-- Dinamik olarak güncellenecek alan -->
+                                </div>
+                                <div class="mb-3">
+                                    <label for="attributeDescription" class="form-label">Özellik Açıklaması</label>
+                                    <select id="attributeDescription" class="form-select" required>
+                                        <option value="">Seçiniz...</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-primary" onclick="addCustomerAttribute()">Ekle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
 
             <!-- Müşteri Mesajları -->
             <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
@@ -413,12 +456,103 @@
             // URL'den customerCode parametresini alın
             const urlParams = new URLSearchParams(window.location.search);
             const customerCode = urlParams.get("customerCode");
+            document.getElementById("addPhoneButton").disabled = true;
+            document.getElementById("addAttributeButton").disabled = true;
+            initializeAttributeTypeDropdown();
 
             // Eğer customerCode mevcutsa fetchCustomerDetails fonksiyonunu çağır
             if (customerCode) {
                 document.getElementById("customer_code").value = customerCode;  // input alanına müşteri kodunu gir
                 fetchCustomerDetails();  // Fonksiyonu çağır
             }
+        });
+
+        function initializeAttributeTypeDropdown() {
+        const attributeTypeDropdown = document.getElementById("attributeType");
+
+        // 1'den 25'e kadar AttributeTypeCode seçeneklerini dinamik olarak ekler
+            for (let i = 1; i <= 25; i++) {
+                const option = document.createElement("option");
+                option.value = i.toString().padStart(3, '0'); // "001", "002" formatında
+                option.text = `Özellik Tipi ${i}`;
+                attributeTypeDropdown.appendChild(option);
+            }
+        }
+
+        // Kullanıcı AttributeTypeCode seçtiğinde çağrılır
+        function fetchAttributeList() {
+            const attributeTypeCode = document.getElementById("attributeType").value;
+
+            if (!attributeTypeCode) return;
+
+            // İlgili AttributeTypeCode'a göre ikinci dropdown menüyü doldurur
+            fetch(`/api/get-customer-attribute-list/${attributeTypeCode}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const attributeDropdown = document.getElementById("attributeDescription");
+                    attributeDropdown.innerHTML = '<option value="">Seçiniz...</option>'; // Varsayılan boş seçenek
+
+                    data.forEach(attr => {
+                        const option = document.createElement("option");
+                        option.value = attr.AttributeCode;
+                        option.text = attr.AttributeDescription; // Açıklama olarak AttributeTypeDescription göster
+                        attributeDropdown.appendChild(option);
+                    });
+
+                    // Modal içinde AttributeTypeDescription güncelle
+                    const attributeTypeDescriptionElement = document.getElementById("attributeTypeDescription");
+                    attributeTypeDescriptionElement.innerText = data.length > 0 ? data[0].AttributeTypeDescription : 'Bilgi yok';
+                })
+                .catch(error => {
+                    console.error("Error fetching attribute list:", error);
+                });
+        }
+
+
+        // Ekle butonuna tıklandığında çağrılır
+        function addCustomerAttribute() {
+            const customerCode = document.getElementById("customer_code").value;
+            const username = "{{ username }}"; // Django'dan username alındı
+            const attributeTypeCode = document.getElementById("attributeType").value;
+            const attributeCode = document.getElementById("attributeDescription").value;
+
+            if (!attributeTypeCode || !attributeCode) {
+                alert("Lütfen tüm alanları doldurun.");
+                return;
+            }
+
+            const requestData = {
+                CustomerCode: customerCode,
+                AttributeTypeCode: attributeTypeCode,
+                AttributeCode: attributeCode,
+                username: username
+            };
+
+            fetch('/api/add-customer-attribute/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // CSRF koruması için
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Özellik eklenemedi.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.success || "Özellik başarıyla eklendi.");
+            })
+            .catch(error => {
+                alert(`Hata: ${error.message}`);
+            });
+        }
+
+        // Telefon ekleme butonunu başlangıçta devre dışı bırak
+        document.addEventListener("DOMContentLoaded", function() {
+        
         });
 
         function showLoading() {
@@ -449,7 +583,6 @@
                     return response.json();
                 })
                 .then(data => {
-                    const userName = "{{ username }}"; // Django'dan gelen kullanıcı adı
                     updateCustomerDetailsCard(data.customer_details[0] || {});
                     updateCustomerPhonesTable(data.customer_phones || []);
                     updateCustomerNotesTable1(data.customer_notes1 || []);
@@ -460,7 +593,7 @@
 
                     // Telefon Ekle butonunu aktif hale getir
                     document.getElementById("addPhoneButton").disabled = false;
-
+                    document.getElementById("addAttributeButton").disabled = false;
                 })
                 .catch(error => {
                     alert(`Hata: ${error.message}`);
@@ -469,11 +602,6 @@
                     hideLoading(); // İşlem tamamlanınca animasyonu gizle
                 });
         }
-
-        // Telefon ekleme butonunu başlangıçta devre dışı bırak
-        document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById("addPhoneButton").disabled = true;
-        });
 
         function updateCustomerDetailsCard(details) {
             const content = document.getElementById("customer-details-content");
@@ -526,21 +654,16 @@
             `).join('');
         }
 
-        function updateCustomerAttributesTable(customer_attributes, customerCode, userName) {
+        function updateCustomerAttributesTable(customer_attributes) {
             const tableBody = document.querySelector("#customer-attributes-table tbody");
             tableBody.innerHTML = customer_attributes.map(attr => `
                 <tr>
                     <td>${attr.AttributeTypeDescription || 'Bilgi yok'}</td>
-                    <td id="dropdown-${attr.AttributeTypeCode}">
-                        ${attr.AttributeDescription ? attr.AttributeDescription : '<span class="table-placeholder">Seçim bekleniyor...</span>'}
-                    </td>
+                    <td>${attr.AttributeDescription || 'Bilgi yok'}</td>
                 </tr>
             `).join('');
-
-            customer_attributes.forEach(attr => {
-                fetchAttributeDescriptionList(attr.AttributeTypeCode, customerCode, userName);
-            });
         }
+
 
         function updateCustomerMessagesTable(customer_messages) {
             const tableBody = document.querySelector("#customer-messages-table tbody");
@@ -650,78 +773,6 @@
                     hideLoading(); // İşlem tamamlanınca animasyonu gizle
                 });
         }
-
-        function fetchAttributeDescriptionList(attributeTypeCode, customerCode, userName) {
-            fetch(`/api/get-customer-attribute-list/${attributeTypeCode}/`)
-                .then(response => response.json())
-                .then(attributeList => {
-                    const dropdown = document.createElement("select");
-                    dropdown.classList.add("form-select", "attribute-dropdown");
-                    dropdown.setAttribute("data-attribute-type", attributeTypeCode);
-
-                    attributeList.forEach(attr => {
-                        const option = document.createElement("option");
-                        option.value = attr.AttributeCode;
-                        option.textContent = attr.AttributeDescription;
-                        dropdown.appendChild(option);
-                    });
-
-                    const cell = document.querySelector(`#dropdown-${attributeTypeCode}`);
-                    cell.innerHTML = '';
-                    cell.appendChild(dropdown);
-
-                    attachUpdateListener(customerCode, userName);
-                })
-                .catch(error => console.error(`Attribute listesi alınırken hata oluştu: ${error.message}`));
-        }
-
-        function attachUpdateListener(customerCode, userName) {
-            // Sadece ilk kez eklenmiş dropdown'lara dinleyici ekleyelim
-            document.querySelectorAll(".attribute-dropdown").forEach(dropdown => {
-                // Daha önce dinleyici eklenmişse tekrar ekleme
-                if (!dropdown.hasAttribute('listener-added')) {
-                    dropdown.addEventListener("change", (event) => {
-                        const selectedOption = event.target.value;
-                        const attributeTypeCode = event.target.getAttribute("data-attribute-type");
-
-                        updateCustomerAttribute(customerCode, attributeTypeCode, selectedOption, userName);
-                    });
-                    // Dinleyici eklendiğini işaretle
-                    dropdown.setAttribute('listener-added', 'true');
-                }
-            });
-        }
-
-
-        function updateCustomerAttribute(customerCode, attributeTypeCode, attributeCode, userName) {
-            fetch('/api/add-customer-attribute/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    CustomerCode: customerCode,
-                    AttributeTypeCode: attributeTypeCode,
-                    AttributeCode: attributeCode,
-                    username: userName
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Güncelleme başarısız.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert("Özellik başarıyla güncellendi.");
-            })
-            .catch(error => {
-                console.error(`Hata oluştu: ${error.message}`);
-            });
-        }
-
-
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

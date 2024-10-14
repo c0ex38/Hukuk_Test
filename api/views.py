@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 # Firebase yapılandırması
 cred = credentials.Certificate('api/serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://dgnhukuk-f985f-default-rtdb.europe-west1.firebasedatabase.app/'
+    'databaseURL': 'https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app/'
 })
 
 
@@ -423,7 +423,7 @@ def add_customer_attribute(request):
         username = data.get("username")
 
         procedure_info = {
-            "ProcName": "[360Portal].dbo.addCustomerAttribute",
+            "ProcName": "[360Portal].dbo.CustomerService_addCustomerAttribute",
             "Parameters": [
                 {"Name": "Customercode", "Value": customer_code},
                 {"Name": "AttributeTypeCode", "Value": attribute_type_code},
