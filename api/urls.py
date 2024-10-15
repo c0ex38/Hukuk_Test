@@ -11,6 +11,8 @@ from .views import (
     get_customer_attributes_list,
     add_customer_attribute,
     AddPhoneLogView,
+    CallHistoryListenerView,
+    GetCustomerNoteCategoriesView,
 )
 
 urlpatterns = [
@@ -24,4 +26,6 @@ urlpatterns = [
     path('get-customer-attribute-list/<int:attribute_type_code>/', get_customer_attributes_list, name='get_customer_attributes_list'),
     path('add-customer-attribute/', add_customer_attribute, name='add_customer_attribute'),
     path('api/add-phone-log/<str:username>/', AddPhoneLogView.as_view(), name='add_phone_log'),
+    path('api/call-history-listener/<str:username>/', CallHistoryListenerView.as_view(), name='call_history_listener'),
+    path('api/get-customer-note-categories/', GetCustomerNoteCategoriesView.as_view(), name='get_customer_note_categories'),
 ]

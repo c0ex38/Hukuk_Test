@@ -1,4 +1,3 @@
-import datetime
 import http.client
 import http.client
 import http.client
@@ -44,6 +43,34 @@ class AddPhoneLogView(APIView):
             return Response({"message": "Phone log added successfully!"}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"error": f"Failed to add phone log: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CallHistoryListenerView(APIView):
+    def post(self, request, username):
+        # Gelen veriyi al
+        data = request.data
+
+        # Verinin doğru yapıda olup olmadığını kontrol et
+        if not isinstance(data, dict) or len(data) == 0:
+            return Response({"error": "Invalid data format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Her bir çağrıyı işleyin
+        for uniq_id, call_info in data.items():
+            call_duration = call_info.get('call_duration')
+            call_type = call_info.get('call_type')
+            caller_id = call_info.get('caller_id')
+            phone_number = call_info.get('phone_number')
+            status_value = call_info.get('status')
+
+            # Başarıyla alındığında yanıt döndür
+            return Response({
+                "message": "Call data processed successfully.",
+                "redirect": f"/callResult?username={username}&phone_number={phone_number}&status={status_value}&duration={call_duration}"
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "No valid call data found."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 
@@ -361,6 +388,30 @@ def add_customer_communication(request):
     return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
 
 
+class GetCustomerNoteCategoriesView(APIView):
+    def get(self, request):
+        # Session ID alma
+        session_id_response = requests.get("http://127.0.0.1:8000/api/get-session-id/")
+        if session_id_response.status_code != 200 or "session_id" not in session_id_response.json():
+            return JsonResponse({"error": "Session ID alınamadı."}, status=500)
+
+        session_id = session_id_response.json().get("session_id")
+
+        # Prosedür bilgisi
+        procedure_info = {
+            "ProcName": "[360Portal].dbo.CustomerService_getCustomerNoteCategories",
+            "Parameters": []  # Parametreler boş bırakıldı
+        }
+
+        procedure_url = f"http://176.236.176.155:1260/(S({session_id}))/IntegratorService/RunProc"
+        try:
+            response = requests.post(procedure_url, json=procedure_info)
+            response.raise_for_status()
+            return JsonResponse(response.json(), safe=False, status=200)
+        except requests.exceptions.HTTPError as e:
+            return JsonResponse({"error": f"Prosedür başarısız: {str(e)}"}, status=500)
+
+
 def run_customer_notes(session_id, customer_code, alert_type, date, taker, description):
     procedure_info = {
         "ProcName": "[360Portal].dbo.CustomerService_postCustomerNotes1",
@@ -496,3 +547,21 @@ def homepage_view(request):
 def customer_find_view(request):
     username = request.session.get('username')  # Oturumda saklanan kullanıcı adı
     return render(request, 'customerFind.html', {'username': username})
+
+
+def call_result_view(request):
+    # URL'den gelen verileri al
+    phone_number = request.GET.get("phone_number")
+    status = request.GET.get("status")
+    duration = request.GET.get("duration")
+    username = request.GET.get("username")
+
+    # Verileri template'e gönder
+    context = {
+        'phone_number': phone_number,
+        'status': status,
+        'duration': duration,
+        'username': username
+    }
+
+    return render(request, 'callResult.html', context)  # 'callResult.html' adlı template dosyasını render et

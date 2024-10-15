@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -5,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="{% static 'js/firebase-listener.js' %}"></script> <!-- JavaScript dosyanızı ekleyin -->
+
     <style>
         /* Genel Sayfa Ayarları */
         body {
@@ -463,13 +466,19 @@
     </div>
 
     <script>
+
+
         document.addEventListener("DOMContentLoaded", function() {
             // URL'den customerCode parametresini alın
             const urlParams = new URLSearchParams(window.location.search);
             const customerCode = urlParams.get("customerCode");
+            const username = "{{ username }}"; // Kullanıcı adını alın (Django'dan veya başka bir kaynaktan)
+            
+
             document.getElementById("addPhoneButton").disabled = true;
             document.getElementById("addAttributeButton").disabled = true;
             initializeAttributeTypeDropdown();
+            listenForCallHistoryUpdates(username); // Dinleyiciyi başlat
 
             // Eğer customerCode mevcutsa fetchCustomerDetails fonksiyonunu çağır
             if (customerCode) {
@@ -795,10 +804,10 @@
         // Telefon numarasına tıklandığında çağrılacak fonksiyon
         function addPhoneLog(username, phoneNumber) {
             const phoneNumberCell = document.querySelector(`.phone-number[data-phone="${phoneNumber}"]`);
-        
+
             // Tıklama animasyonu için sınıf ekle
             phoneNumberCell.classList.add('active-click');
-        
+
             fetch(`http://localhost:8000/api/add-phone-log/${username}/`, {
                 method: 'POST',
                 headers: {
@@ -823,6 +832,39 @@
                 phoneNumberCell.classList.remove('active-click');
             });
         }
+
+
+        function sendCallDataToApi(callData, username) {
+            // URL'den customerCode parametresini tekrar alın
+            const urlParams = new URLSearchParams(window.location.search);
+            const customerCode = urlParams.get("customerCode"); // customerCode'u burada al
+
+            fetch(`http://localhost:8000/api/call-history-listener/${username}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ...callData, customerCode: customerCode }) // callData'ya customerCode'u ekleyin
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API isteği başarısız oldu.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API yanıtı:', data);
+
+                // Eğer bir yönlendirme varsa, bu URL'ye yönlendirin
+                if (data.redirect) {
+                    window.location.href = data.redirect; // callResult sayfasına yönlendir
+                }
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+            });
+        }
+
 
 
     </script>
