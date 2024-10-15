@@ -124,6 +124,17 @@
             justify-content: center;
             z-index: 1000;
         }
+
+        /* CSS animasyonu */
+        .phone-number {
+            cursor: pointer; /* Tıklanabilir olduğunu göstermek için */
+            transition: background-color 0.3s ease;
+        }
+
+        .phone-number:active {
+            background-color: rgba(0, 123, 255, 0.2); /* Tıklama anında arka plan rengi değişimi */
+        }
+
     </style>
 </head>
 <body class="bg-light">
@@ -626,10 +637,21 @@
             tableBody.innerHTML = phones.map(phone => `
                 <tr>
                     <td>${phone.CommunicationTypeDescription}</td>
-                    <td>${phone.Phone}</td>
+                    <td class="phone-number" data-phone="${phone.Phone}">${phone.Phone}</td>
                 </tr>
             `).join('');
+
+            // Tıklama olayı ekleyin
+            const phoneNumberCells = document.querySelectorAll('.phone-number');
+            phoneNumberCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const phoneNumber = this.dataset.phone; // Telefon numarasını al
+                    const username = "{{ username }}"; // Kullanıcı adını alın (Django'dan)
+                    addPhoneLog(username, phoneNumber); // API'yi çağır
+                });
+            });
         }
+
 
         function updateCustomerNotesTable1(customer_notes1) {
             const tableBody = document.querySelector("#customer-notes-table tbody");
@@ -685,10 +707,8 @@
                 </tr>
             `).join('');
         }
-    </script>
 
-    <!-- JavaScript ile Modal İşlevselliği ve API Entegrasyonu -->
-    <script>
+        <!-- JavaScript ile Modal İşlevselliği ve API Entegrasyonu -->
         document.getElementById("addPhoneForm").addEventListener("submit", function(event) {
             event.preventDefault();
             
@@ -742,9 +762,7 @@
                 alert(`Hata: ${error.message}`);
             });
         });
-    </script>
 
-    <script>
         function fetchCustomerDetailsAndRedirect() {
             showLoading(); // Yükleniyor animasyonunu göster
 
@@ -773,6 +791,40 @@
                     hideLoading(); // İşlem tamamlanınca animasyonu gizle
                 });
         }
+
+        // Telefon numarasına tıklandığında çağrılacak fonksiyon
+        function addPhoneLog(username, phoneNumber) {
+            const phoneNumberCell = document.querySelector(`.phone-number[data-phone="${phoneNumber}"]`);
+        
+            // Tıklama animasyonu için sınıf ekle
+            phoneNumberCell.classList.add('active-click');
+        
+            fetch(`http://localhost:8000/api/add-phone-log/${username}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone_number: phoneNumber })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API isteği başarısız oldu.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data.message); // Başarılı mesajı konsola yazdır
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+            })
+            .finally(() => {
+                // Tıklama animasyonu sınıfını kaldır
+                phoneNumberCell.classList.remove('active-click');
+            });
+        }
+
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

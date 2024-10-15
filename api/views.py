@@ -1,3 +1,4 @@
+import datetime
 import http.client
 import http.client
 import http.client
@@ -24,6 +25,38 @@ cred = credentials.Certificate('api/serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app/'
 })
+
+
+class AddPhoneLogView(APIView):
+    def post(self, request, username):
+        # Kullanıcı adını ve telefondan gelen veriyi al
+        phone_number = request.data.get('phone_number')
+
+        if not phone_number:
+            return Response({"error": "Phone number is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Firebase'de kullanıcıya ait call_logs referansını oluştur
+        ref = db.reference(f'users/{username}/call_logs')
+
+        # Telefona doğrudan call_logs altında yaz
+        try:
+            ref.set({'phone_number': phone_number})  # Veriyi doğrudan call_logs altında ayarlayın
+            return Response({"message": "Phone log added successfully!"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": f"Failed to add phone log: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class SendDataToFirebase(APIView):
+    def post(self, request):
+        data = request.data  # İstemciden gelen veriyi al
+
+        # Firebase Realtime Database'e veriyi gönder
+        ref = db.reference('your_endpoint')  # Verilerinizi hangi referansa göndereceğinizi belirtin
+        ref.push(data)  # Veriyi gönder
+
+        return Response({"message": "Veri başarıyla gönderildi!"}, status=status.HTTP_201_CREATED)
+
 
 
 class LoginWithTokenView(APIView):

@@ -10,6 +10,7 @@ from .views import (
     homepage_view,
     get_customer_attributes_list,
     add_customer_attribute,
+    AddPhoneLogView,
 )
 
 urlpatterns = [
@@ -22,5 +23,5 @@ urlpatterns = [
     path('homepage/', homepage_view, name='homepage'),
     path('get-customer-attribute-list/<int:attribute_type_code>/', get_customer_attributes_list, name='get_customer_attributes_list'),
     path('add-customer-attribute/', add_customer_attribute, name='add_customer_attribute'),
-
+    path('api/add-phone-log/<str:username>/', AddPhoneLogView.as_view(), name='add_phone_log'),
 ]
