@@ -1,0 +1,21 @@
+<!-- templates/user_panel.html -->
+{% extends "base.html" %}
+
+{% block title %}Kullanıcı Paneli{% endblock %}
+
+{% block content %}
+    <div id="panel">
+        <h1>Kullanıcı Paneli</h1>
+        <p>Merhaba, {{ username }}!</p>
+
+        {% if is_admin %}
+            <p>Admin yetkileriniz var. Yönetici paneline <a href="/admin/">buradan</a> gidebilirsiniz.</p>
+        {% else %}
+            <p>Standart kullanıcı olarak giriş yaptınız.</p>
+        {% endif %}
+
+        <div id="component-area">
+            <!-- Dinamik bileşenler burada yüklenecek -->
+        </div>
+    </div>
+{% endblock %}
