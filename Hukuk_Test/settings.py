@@ -69,6 +69,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'api.context_processors.user_info',
+
             ],
         },
     },
@@ -122,13 +124,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-
-# Static files directories
-import os
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # 'static' klasörü projenizin ana dizininde olmalıdır
+    BASE_DIR / "static",
 ]
 
 # Default primary key field type

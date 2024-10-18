@@ -1,871 +1,249 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="{% static 'js/firebase-listener.js' %}"></script> <!-- JavaScript dosyanızı ekleyin -->
 
-    <style>
-        /* Genel Sayfa Ayarları */
-        body {
-            font-family: Arial, sans-serif;
-        }
+{% block title %}Anasayfa{% endblock %}
 
-        /* Kart Tasarımı */
-        #customer-details-card {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        #customer-details-card .card-header {
-            background-color: #007bff;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-        }
-        #customer-details-content {
-            color: #495057;
-        }
+{% block extra_styles %}
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+{% endblock %}
 
-        /* Tablolar için Boş Veriyi Gösterme */
-        .table tbody tr {
-            background-color: #f8f9fa;
-        }
-        .table th {
-            background-color: #007bff;
-            color: white;
-        }
-        .table td {
-            vertical-align: middle;
-            text-align: center;
-            color: #6c757d;
-        }
+{% block navbar_extra %}
+    <!-- Anasayfa için navbar içine input alanı -->
+    <form class="d-flex" role="search">
+        <input id="search-input" class="form-control me-2" type="search" placeholder="Müşteri kodu girin" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Ara</button>
+    </form>
+{% endblock %}
 
-        /* Sekme Başlıkları */
-        .nav-tabs .nav-link.active {
-            background-color: #007bff;
-            color: white;
-        }
-        .nav-tabs .nav-link {
-            color: #007bff;
-        }
-        .nav-tabs .nav-link:hover {
-            color: #0056b3;
-        }
-
-        /* Statik Veri Görünümü */
-        .table-placeholder {
-            color: #6c757d;
-            text-align: center;
-            font-style: italic;
-            opacity: 0.8;
-        }
-
-        /* Sidebar Stil Ayarları */
-        .sidebar {
-            height: 100vh;
-            width: 250px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: #343a40;
-            padding-top: 60px;
-            z-index: 1;
-        }
-        .sidebar .nav-link {
-            color: #adb5bd;
-            font-weight: 500;
-        }
-        .sidebar .nav-link:hover {
-            color: #ffffff;
-        }
-        .sidebar .active {
-            color: #ffffff;
-            background-color: #007bff;
-        }
-
-        /* Ana içerik alanı ayarları */
-        .content {
-            margin-left: 270px; /* İçerik alanını sidebar genişliği kadar sağa kaydır */
-            padding: 20px;
-        }
-
-        /* Küçük ekranlarda sidebar'ın üstte navbar kadar küçültülmesi */
-        @media (max-width: 992px) {
-            .sidebar {
-                height: 60px; /* Navbar ile aynı yükseklik */
-                width: 100%; /* Ekran genişliği kadar */
-                padding-top: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .sidebar .nav-link {
-                display: inline-block;
-                padding: 0.5rem 1rem;
-            }
-            .sidebar .nav-item {
-                display: inline;
-            }
-            .content {
-                margin-left: 0;
-            }
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* Siyah renkle biraz karartma */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        /* CSS animasyonu */
-        .phone-number {
-            cursor: pointer; /* Tıklanabilir olduğunu göstermek için */
-            transition: background-color 0.3s ease;
-        }
-
-        .phone-number:active {
-            background-color: rgba(0, 123, 255, 0.2); /* Tıklama anında arka plan rengi değişimi */
-        }
-
-    </style>
-</head>
-<body class="bg-light">
-    <div id="loading" class="loading-overlay" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Yükleniyor...</span>
-        </div>
-    </div>    
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">DGN</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <input type="text" id="customer_code" class="form-control" placeholder="Müşteri Kodu">
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-light ms-2" onclick="fetchCustomerDetails()">ARA</button>
-                    </li>
-                    <!-- Dropdown Kullanıcı Menü -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ username }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="/logout">Çıkış Yap</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Sidebar Menü -->
-    <div class="sidebar d-none d-lg-block" id="sidebarMenu">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="/homepage/">
-                    <i class="bi bi-house-door-fill me-2"></i>Ana Sayfa
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="fetchCustomerDetailsAndRedirect()">
-                    <i class="bi bi-person-lines-fill me-2"></i>Müşteri Detayları
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="bi bi-gear-fill me-2"></i>Ayarlar
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/logout">
-                    <i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap
-                </a>
-            </li>
-        </ul>
-    </div>
-
-    <!-- Ana İçerik -->
-    <div class="content">
+{% block content %}
+    <div id="homepage-content">
+        <!-- Kutular için grid sistemi -->
         <div class="row">
-            <!-- Sol Sütun - Müşteri Detayları Kartı -->
-            <div class="col-md-6">
-                <div class="card mb-4" id="customer-details-card">
-                    <div class="card-header">
-                        Müşteri Detayları
-                    </div>            
+            <!-- Soldaki kutu (Müşteri Bilgileri) -->
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        Müşteri Bilgileri
+                    </div>
                     <div class="card-body">
-                        <div id="customer-details-content">
-                            <p class="text-center table-placeholder">Veri bekleniyor...</p>
+                        <p id="customer-loading">Gösterilecek veri yok...</p>
+                        <div id="customer-info" style="display: none;">
+                            <p><strong>Adı: </strong><span id="customer-name"></span></p>
+                            <p><strong>Soyadı: </strong><span id="customer-surname"></span></p>
+                            <p><strong>TC Kimlik No: </strong><span id="customer-identity"></span></p>
+                            <p><strong>Baba Adı: </strong><span id="customer-father"></span></p>
+                            <p><strong>Anne Adı: </strong><span id="customer-mother"></span></p>
+                            <p><strong>Hesap Açılış Tarihi: </strong><span id="customer-opening"></span></p>
+                            <p><strong>Toplam Gecikmiş Borç: </strong><span id="customer-overdue"></span></p>
+                            <p><strong>Kötü Borç: </strong><span id="customer-bad-debt"></span></p>
+                            <p><strong>Kredi Limiti: </strong><span id="customer-credit"></span></p>
+                            <p><strong>Kalan Limit: </strong><span id="customer-remaining"></span></p>
+                            <p><strong>Hesap Durumu: </strong><span id="customer-status"></span></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sağ Sütun - Telefonlar Tablosu -->
-            <div class="col-md-6">
-                <div class="table-responsive">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2>Telefon Numaraları</h2>
-                        <button id="addPhoneButton" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPhoneModal" disabled>
-                            Ekle
+            <!-- Sağdaki kutu (Telefon Bilgileri) -->
+            <div class="col-lg-6">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="fas fa-phone-alt"></i> Telefon Bilgileri
+                        <button id="addPhoneBtn" class="btn btn-light btn-sm float-end" data-bs-toggle="modal" data-bs-target="#addPhoneModal" disabled>
+                            <i class="fas fa-plus-circle"></i> Ekle
                         </button>
                     </div>
-                    <table class="table table-sm table-bordered mt-3" id="customer-phones-table">
-                        <thead>
-                            <tr>
-                                <th>İletişim Türü</th>
-                                <th>Telefon Numarası</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="2" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Telefon Ekleme Modal -->
-            <div class="modal fade" id="addPhoneModal" tabindex="-1" aria-labelledby="addPhoneModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addPhoneModalLabel">Yeni Telefon Numarası Ekle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addPhoneForm">
-                                <div class="mb-3">
-                                    <label for="communicationType" class="form-label">İletişim Türü</label>
-                                    <select id="communicationType" class="form-select" required>
-                                        <option value="">Seçiniz...</option>
-                                        <option value="001">Kendi Cep Telefonu</option>
-                                        <option value="002">Ulaşılmasını İstediği 2. Cep Numarası</option>
-                                        <option value="003">İş Telefonu</option>
-                                        <option value="004">Ev Telefonu</option>
-                                        <option value="005">E-Mail</option>
-                                        <option value="006">Ek Kullanıcı 1 Cep Tel</option>
-                                        <option value="007">Ek Kullanıcı 2 Cep Tel</option>
-                                        <option value="008">Ek Kullanıcı 3 Cep Tel</option>
-                                        <option value="009">KASİYER DENEME GİRECEĞİ TEL</option>
-                                        <option value="010">Baba Telefonu</option>
-                                        <option value="011">Anne telefonu</option>
-                                        <option value="012">Eşinin Telefonu</option>
-                                        <option value="013">Arkadaş Telefonu</option>
-                                        <option value="014">Kardeş ( aile bireyi )</option>
-                                        <option value="015">İsimli Tel. Alma</option>
-                                        <option value="016">Kızı</option>
-                                        <option value="017">Oğlu</option>
-                                        <option value="018">Yakın akrabası</option>
-                                        <option value="019">Tanıdığı</option>
-                                        <option value="020">Kullanım Dışı</option>
-                                        <option value="021">Başkası Tarafından Kullanılıyor</option>
-                                        <option value="022">Güncel Olabilecek Telefonu</option>
-                                        <option value="023">Yeni Güncel Güncel Telefonu Olabilir</option>
-                                        <option value="024">AVUKATA GELEN KENDİ TEFON NUMARASI</option>
-                                        <option value="025">AVUKATA GELEN AKRABA VE YAKINI Telefon numarası</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phoneNumber" class="form-label">Telefon Numarası</label>
-                                    <input type="text" id="phoneNumber" class="form-control" placeholder="Telefon numarası giriniz" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="submit" form="addPhoneForm" class="btn btn-primary">Ekle</button>
-                        </div>
+                    <div class="card-body">
+                        <p id="phones-loading" class="text-center text-muted">Gösterilecek veri yok...</p>
+                        <table id="phones-table" class="table table-hover table-striped" style="display: none;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>İletişim Türü</th>
+                                    <th>Telefon Numarası</th>
+                                </tr>
+                            </thead>
+                            <tbody id="phones-body">
+                                <!-- Dinamik olarak doldurulacak -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sekmeler -->
-        <ul class="nav nav-tabs mt-4" id="customerTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="notes-tab" data-bs-toggle="tab" href="#notes1" role="tab" aria-controls="notes" aria-selected="true">Müşteri Notları (1)</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="notes2-tab" data-bs-toggle="tab" href="#notes2" role="tab" aria-controls="notes2" aria-selected="false">Müşteri Notları (2)</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="attributes-tab" data-bs-toggle="tab" href="#attributes" role="tab" aria-controls="attributes" aria-selected="false">Müşteri Özellikleri</a>
-                <button id="addAttributeButton" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAttributeModal" disabled>
-                    Ekle
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="messages-tab" data-bs-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Müşteri Mesajları</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="addresses-tab" data-bs-toggle="tab" href="#addresses" role="tab" aria-controls="addresses" aria-selected="false">Adresler</a>
-            </li>
-        </ul>
-
-        <!-- Sekme İçerikleri -->
-        <div class="tab-content mt-3" id="customerTabsContent">
-            <!-- Müşteri Notları 1 -->
-            <div class="tab-pane fade show active" id="notes1" role="tabpanel" aria-labelledby="notes-tab">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="customer-notes-table">
-                        <thead>
-                            <tr>
-                                <th>Not</th>
-                                <th>Uyarı Türü</th>
-                                <th>Tarih</th>
-                                <th>Notu Alan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Müşteri Notları 2 -->
-            <div class="tab-pane fade" id="notes2" role="tabpanel" aria-labelledby="notes2-tab">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="customer-notes2-table">
-                        <thead>
-                            <tr>
-                                <th>Not</th>
-                                <th>Tarih</th>
-                                <th>Notu Alan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="3" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Müşteri Özellikleri -->
-            <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
-                <div class="table-responsive">
-                    <div class="d-flex justify-content-between align-items-center">
-                    </div>
-                    <table class="table table-sm table-bordered" id="customer-attributes-table">
-                        <thead>
-                            <tr>
-                                <th>Özellik Açıklaması</th>
-                                <th>Detay</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="2" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Müşteri Özellikleri Ekle Modal -->
-            <div class="modal fade" id="addAttributeModal" tabindex="-1" aria-labelledby="addAttributeModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addAttributeModalLabel">Yeni Özellik Ekle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addAttributeForm">
-                                <div class="mb-3">
-                                    <label for="attributeType" class="form-label">Özellik Tipi</label>
-                                    <select id="attributeType" class="form-select" onchange="fetchAttributeList()" required>
-                                        <option value="">Seçiniz...</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="attributeTypeDescription" class="form-label">Özellik Tipi Açıklaması</label>
-                                    <span id="attributeTypeDescription">Bilgi yok</span> <!-- Dinamik olarak güncellenecek alan -->
-                                </div>
-                                <div class="mb-3">
-                                    <label for="attributeDescription" class="form-label">Özellik Açıklaması</label>
-                                    <select id="attributeDescription" class="form-select" required>
-                                        <option value="">Seçiniz...</option>
-                                    </select>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-primary" onclick="addCustomerAttribute()">Ekle</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            
-
-            <!-- Müşteri Mesajları -->
-            <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="customer-messages-table">
-                        <thead>
-                            <tr>
-                                <th>Telefon Numarası</th>
-                                <th>Tarih</th>
-                                <th>Mesaj</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="3" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Adresler -->
-            <div class="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="customer-addresses-table">
-                        <thead>
-                            <tr>
-                                <th>Adres Türü</th>
-                                <th>Adres</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="2" class="table-placeholder">Veri bekleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // URL'den customerCode parametresini alın
-            const urlParams = new URLSearchParams(window.location.search);
-            const customerCode = urlParams.get("customerCode");
-            const username = "{{ username }}"; // Kullanıcı adını alın (Django'dan veya başka bir kaynaktan)
-            
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="installments-tab" data-bs-toggle="tab" data-bs-target="#installments" type="button" role="tab" aria-controls="installments" aria-selected="true">Taksitler</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">Notlar</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab" aria-controls="messages" aria-selected="false">Mesajlar</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button" role="tab" aria-controls="attributes" aria-selected="false">Özellikler</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab" aria-controls="addresses" aria-selected="false">Adresler</button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content mt-3" id="myTabContent">
+        <!-- Taksitler Tab -->
+        <div class="tab-pane fade show active" id="installments" role="tabpanel" aria-labelledby="installments-tab">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Ödeme Türü</th>
+                            <th>Ödeme Miktarı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="installments-body">
+                        <!-- Taksit verileri burada dinamik olarak doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Notlar Tab -->
+        <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Uyarı Türü</th>
+                            <th>Açıklama</th>
+                            <th>Notu Alan Kişi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notes-list">
+                        <!-- Dinamik olarak doldurulacak müşteri notları burada olacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            document.getElementById("addPhoneButton").disabled = true;
-            document.getElementById("addAttributeButton").disabled = true;
-            initializeAttributeTypeDropdown();
-            listenForCallHistoryUpdates(username); // Dinleyiciyi başlat
+        <!-- Mesajlar Tab -->
+        <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Telefon Numarası</th>
+                            <th>Tarih</th>
+                            <th>Mesaj</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messages-list">
+                        <!-- Dinamik olarak doldurulacak müşteri mesajları burada olacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            // Eğer customerCode mevcutsa fetchCustomerDetails fonksiyonunu çağır
-            if (customerCode) {
-                document.getElementById("customer_code").value = customerCode;  // input alanına müşteri kodunu gir
-                fetchCustomerDetails();  // Fonksiyonu çağır
-            }
-        });
+        <!-- Özellikler Tab -->
+        <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Özellik Türü</th>
+                            <th>Açıklama</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attributes-list">
+                        <!-- Dinamik olarak doldurulacak müşteri özellikleri burada olacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        function initializeAttributeTypeDropdown() {
-        const attributeTypeDropdown = document.getElementById("attributeType");
+        <!-- Adresler Tab -->
+        <div class="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Adres Türü</th>
+                            <th>Adres</th>
+                        </tr>
+                    </thead>
+                    <tbody id="addresses-list">
+                        <!-- Dinamik olarak doldurulacak müşteri adresleri burada olacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        // 1'den 25'e kadar AttributeTypeCode seçeneklerini dinamik olarak ekler
-            for (let i = 1; i <= 25; i++) {
-                const option = document.createElement("option");
-                option.value = i.toString().padStart(3, '0'); // "001", "002" formatında
-                option.text = `Özellik Tipi ${i}`;
-                attributeTypeDropdown.appendChild(option);
-            }
-        }
-
-        // Kullanıcı AttributeTypeCode seçtiğinde çağrılır
-        function fetchAttributeList() {
-            const attributeTypeCode = document.getElementById("attributeType").value;
-
-            if (!attributeTypeCode) return;
-
-            // İlgili AttributeTypeCode'a göre ikinci dropdown menüyü doldurur
-            fetch(`/api/get-customer-attribute-list/${attributeTypeCode}/`)
-                .then(response => response.json())
-                .then(data => {
-                    const attributeDropdown = document.getElementById("attributeDescription");
-                    attributeDropdown.innerHTML = '<option value="">Seçiniz...</option>'; // Varsayılan boş seçenek
-
-                    data.forEach(attr => {
-                        const option = document.createElement("option");
-                        option.value = attr.AttributeCode;
-                        option.text = attr.AttributeDescription; // Açıklama olarak AttributeTypeDescription göster
-                        attributeDropdown.appendChild(option);
-                    });
-
-                    // Modal içinde AttributeTypeDescription güncelle
-                    const attributeTypeDescriptionElement = document.getElementById("attributeTypeDescription");
-                    attributeTypeDescriptionElement.innerText = data.length > 0 ? data[0].AttributeTypeDescription : 'Bilgi yok';
-                })
-                .catch(error => {
-                    console.error("Error fetching attribute list:", error);
-                });
-        }
-
-
-        // Ekle butonuna tıklandığında çağrılır
-        function addCustomerAttribute() {
-            const customerCode = document.getElementById("customer_code").value;
-            const username = "{{ username }}"; // Django'dan username alındı
-            const attributeTypeCode = document.getElementById("attributeType").value;
-            const attributeCode = document.getElementById("attributeDescription").value;
-
-            if (!attributeTypeCode || !attributeCode) {
-                alert("Lütfen tüm alanları doldurun.");
-                return;
-            }
-
-            const requestData = {
-                CustomerCode: customerCode,
-                AttributeTypeCode: attributeTypeCode,
-                AttributeCode: attributeCode,
-                username: username
-            };
-
-            fetch('/api/add-customer-attribute/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // CSRF koruması için
-                },
-                body: JSON.stringify(requestData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Özellik eklenemedi.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.success || "Özellik başarıyla eklendi.");
-            })
-            .catch(error => {
-                alert(`Hata: ${error.message}`);
-            });
-        }
-
-        // Telefon ekleme butonunu başlangıçta devre dışı bırak
-        document.addEventListener("DOMContentLoaded", function() {
-        
-        });
-
-        function showLoading() {
-            document.getElementById("loading").style.display = "flex";
-        }
-
-        function hideLoading() {
-            document.getElementById("loading").style.display = "none";
-        }
+    </div>
 
 
-        function fetchCustomerDetails() {
-            const customerCode = document.getElementById("customer_code").value;
-
-            // Eğer müşteri kodu boşsa uyarı ver
-            if (!customerCode) {
-                alert("Lütfen müşteri kodunu girin.");
-                return;
-            }
-            
-            showLoading();
-
-            fetch(`/fetch-customer-details/${customerCode}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('API çağrısı başarısız.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    updateCustomerDetailsCard(data.customer_details[0] || {});
-                    updateCustomerPhonesTable(data.customer_phones || []);
-                    updateCustomerNotesTable1(data.customer_notes1 || []);
-                    updateCustomerNotesTable2(data.customer_notes2 || []);
-                    updateCustomerAttributesTable(data.customer_attributes || []);
-                    updateCustomerMessagesTable(data.customer_messages || []);
-                    updateCustomerAddressesTable(data.customer_addresses || []);
-
-                    // Telefon Ekle butonunu aktif hale getir
-                    document.getElementById("addPhoneButton").disabled = false;
-                    document.getElementById("addAttributeButton").disabled = false;
-                })
-                .catch(error => {
-                    alert(`Hata: ${error.message}`);
-                })
-                .finally(() => {
-                    hideLoading(); // İşlem tamamlanınca animasyonu gizle
-                });
-        }
-
-        function updateCustomerDetailsCard(details) {
-            const content = document.getElementById("customer-details-content");
-            content.innerHTML = `
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>Ad:</strong> ${details.Name || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Soyad:</strong> ${details.Surname || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Kimlik No:</strong> ${details.IdentityNum || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Baba Adı:</strong> ${details.FatherName || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Anne Adı:</strong> ${details.MotherName || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Hesap Açılış Tarihi:</strong> ${new Date(parseInt(details.AccountOpeningDate.replace(/[^0-9]/g, ''))).toLocaleDateString() || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Toplam Borç:</strong> ${details.TotalOverdueDebt || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Kredi Limiti:</strong> ${details.CreditLimit || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Kalan Limit:</strong> ${details.RemainingLimit || 'Bilgi yok'}</li>
-                    <li class="list-group-item"><strong>Kötü Borç:</strong> ${details.BadDebt || 'Bilgi yok'}</li>
-                </ul>
-            `;
-        }
-
-        function updateCustomerPhonesTable(phones) {
-            const tableBody = document.querySelector("#customer-phones-table tbody");
-            tableBody.innerHTML = phones.map(phone => `
-                <tr>
-                    <td>${phone.CommunicationTypeDescription}</td>
-                    <td class="phone-number" data-phone="${phone.Phone}">${phone.Phone}</td>
-                </tr>
-            `).join('');
-
-            // Tıklama olayı ekleyin
-            const phoneNumberCells = document.querySelectorAll('.phone-number');
-            phoneNumberCells.forEach(cell => {
-                cell.addEventListener('click', function() {
-                    const phoneNumber = this.dataset.phone; // Telefon numarasını al
-                    const username = "{{ username }}"; // Kullanıcı adını alın (Django'dan)
-                    addPhoneLog(username, phoneNumber); // API'yi çağır
-                });
-            });
-        }
+   <!-- Telefon Ekleme Modülü (Bootstrap Modal) -->
+    <div class="modal fade" id="addPhoneModal" tabindex="-1" aria-labelledby="addPhoneModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPhoneModalLabel">Yeni Telefon Bilgisi Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addPhoneForm">
+                        <div class="mb-3">
+                            <!-- İletişim Türü Dropdown -->
+                            <label for="communicationType" class="form-label">İletişim Türü</label>
+                            <select class="form-select" id="communicationType" required>
+                                <option value="" disabled selected>İletişim türü seçin</option>
+                                <option value="001">Kendi Cep Telefonu</option>
+                                <option value="002">Ulaşılmasını İstediği 2. Cep Numarası</option>
+                                <option value="003">İş Telefonu</option>
+                                <option value="004">Ev Telefonu</option>
+                                <option value="005">E-Mail</option>
+                                <option value="006">Ek Kullanıcı 1 Cep Tel</option>
+                                <option value="007">Ek Kullanıcı 2 Cep Tel</option>
+                                <option value="008">Ek Kullanıcı 3 Cep Tel</option>
+                                <option value="009">KASİYER DENEME GİRECEĞİ TEL</option>
+                                <option value="010">Baba Telefonu</option>
+                                <option value="011">Anne Telefonu</option>
+                                <option value="012">Eşinin Telefonu</option>
+                                <option value="013">Arkadaş Telefonu</option>
+                                <option value="014">Kardeş (Aile Bireyi)</option>
+                                <option value="015">İsimli Tel. Alma</option>
+                                <option value="016">Kızı</option>
+                                <option value="017">Oğlu</option>
+                                <option value="018">Yakın Akrabası</option>
+                                <option value="019">Tanıdığı</option>
+                                <option value="020">Kullanım Dışı</option>
+                                <option value="021">Başkası Tarafından Kullanılıyor</option>
+                                <option value="022">Güncel Olabilecek Telefonu</option>
+                                <option value="023">Yeni Güncel Güncel Telefonu Olabilir</option>
+                                <option value="024">Avukata Gelen Kendi Telefon Numarası</option>
+                                <option value="025">Avukata Gelen Akraba ve Yakını Telefonu</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <!-- Telefon Numarası -->
+                            <label for="phoneNumber" class="form-label">Telefon Numarası</label>
+                            <input type="text" class="form-control" id="phoneNumber" placeholder="Telefon numarası girin" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
-        function updateCustomerNotesTable1(customer_notes1) {
-            const tableBody = document.querySelector("#customer-notes-table tbody");
-            tableBody.innerHTML = customer_notes1.map(note => `
-                <tr>
-                    <td>${note.DescriptionNote1 || 'Bilgi yok'}</td>
-                    <td>${note.AlertTypeNote1 || 'Bilgi yok'}</td>
-                    <td>${new Date(parseInt(note.DateNote1.replace(/[^0-9]/g, ''))).toLocaleDateString() || 'Bilgi yok'}</td>
-                    <td>${note.NoteTakerNote1 || 'Bilgi yok'}</td>
-                </tr>
-            `).join('');
-        }
+{% endblock %}
 
-        function updateCustomerNotesTable2(customer_notes2) {
-            const tableBody = document.querySelector("#customer-notes2-table tbody");
-            tableBody.innerHTML = customer_notes2.map(note => `
-                <tr>
-                    <td>${note.DescriptionNote2 || 'Bilgi yok'}</td>
-                    <td>${new Date(parseInt(note.DateNote2.replace(/[^0-9]/g, ''))).toLocaleDateString() || 'Bilgi yok'}</td>
-                    <td>${note.NoteTakerNote2 || 'Bilgi yok'}</td>
-                </tr>
-            `).join('');
-        }
-
-        function updateCustomerAttributesTable(customer_attributes) {
-            const tableBody = document.querySelector("#customer-attributes-table tbody");
-            tableBody.innerHTML = customer_attributes.map(attr => `
-                <tr>
-                    <td>${attr.AttributeTypeDescription || 'Bilgi yok'}</td>
-                    <td>${attr.AttributeDescription || 'Bilgi yok'}</td>
-                </tr>
-            `).join('');
-        }
-
-
-        function updateCustomerMessagesTable(customer_messages) {
-            const tableBody = document.querySelector("#customer-messages-table tbody");
-            tableBody.innerHTML = customer_messages.map(msg => `
-                <tr>
-                    <td>${msg.TelephoneNumMessage || 'Bilgi yok'}</td>
-                    <td>${new Date(parseInt(msg.DateMessage.replace(/[^0-9]/g, ''))).toLocaleDateString() || 'Bilgi yok'}</td>
-                    <td>${msg.Message || 'Bilgi yok'}</td>
-                </tr>
-            `).join('');
-        }
-
-        function updateCustomerAddressesTable(customer_addresses) {
-            const tableBody = document.querySelector("#customer-addresses-table tbody");
-            tableBody.innerHTML = customer_addresses.map(addr => `
-                <tr>
-                    <td>${addr.AdressType || 'Bilgi yok'}</td>
-                    <td>${addr.Adress || 'Bilgi yok'}</td>
-                </tr>
-            `).join('');
-        }
-
-        <!-- JavaScript ile Modal İşlevselliği ve API Entegrasyonu -->
-        document.getElementById("addPhoneForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            
-            const communicationType = document.getElementById("communicationType").value;
-            const phoneNumber = document.getElementById("phoneNumber").value;
-
-            // Kullanıcının müşteri kodu ve adını al
-            const customerCode = document.getElementById("customer_code").value;
-            const username = "{{ username }}"; // Django'dan gelen kullanıcı adı
-
-            // API'ye gönderilecek veriyi oluştur
-            const requestData = {
-                "CustomerCode": customerCode,
-                "CommunicationTypeCode": communicationType,
-                "CommAddress": phoneNumber,
-                "UserName": username
-            };
-
-            fetch('/api/add-customer-communication/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // Django CSRF koruması için token ekleyin
-                },
-                body: JSON.stringify(requestData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Telefon numarası eklenemedi.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert('Telefon numarası başarıyla eklendi!');
-                
-                // Telefon numarası eklenince tabloyu güncelleyin
-                const tableBody = document.querySelector("#customer-phones-table tbody");
-                tableBody.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td>${communicationType}</td>
-                        <td>${phoneNumber}</td>
-                    </tr>
-                `);
-
-                // Modal'ı kapat ve formu sıfırla
-                const modal = new bootstrap.Modal(document.getElementById("addPhoneModal"));
-                modal.hide();
-                document.getElementById("addPhoneForm").reset();
-            })
-            .catch(error => {
-                alert(`Hata: ${error.message}`);
-            });
-        });
-
-        function fetchCustomerDetailsAndRedirect() {
-            showLoading(); // Yükleniyor animasyonunu göster
-
-            fetch('/api/customer-search/')
-                .then(response => {
-                    console.log("Response status:", response.status);  // HTTP durum kodunu kontrol edin
-                    if (!response.ok) {
-                        throw new Error('Müşteri araması başarısız.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Data result:", data.result);  // `result` içinde ne var onu kontrol edin
-
-                    // API yanıtını localStorage'a kaydet
-                    localStorage.setItem('customerSearchResult', JSON.stringify(data.result));
-
-                    // customerFind.html sayfasına yönlendir
-                    window.location.href = '/customerFind/';
-                })
-                .catch(error => {
-                    console.error("Fetch error:", error);  // Hata ayrıntılarını görüntüleyin
-                    alert(`Hata: ${error.message}`);
-                })
-                .finally(() => {
-                    hideLoading(); // İşlem tamamlanınca animasyonu gizle
-                });
-        }
-
-        // Telefon numarasına tıklandığında çağrılacak fonksiyon
-        function addPhoneLog(username, phoneNumber) {
-            const phoneNumberCell = document.querySelector(`.phone-number[data-phone="${phoneNumber}"]`);
-
-            // Tıklama animasyonu için sınıf ekle
-            phoneNumberCell.classList.add('active-click');
-
-            fetch(`http://localhost:8000/api/add-phone-log/${username}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phone_number: phoneNumber })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('API isteği başarısız oldu.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data.message); // Başarılı mesajı konsola yazdır
-            })
-            .catch(error => {
-                console.error('Hata:', error);
-            })
-            .finally(() => {
-                // Tıklama animasyonu sınıfını kaldır
-                phoneNumberCell.classList.remove('active-click');
-            });
-        }
-
-
-        function sendCallDataToApi(callData, username) {
-            // URL'den customerCode parametresini tekrar alın
-            const urlParams = new URLSearchParams(window.location.search);
-            const customerCode = urlParams.get("customerCode"); // customerCode'u burada al
-
-            fetch(`http://localhost:8000/api/call-history-listener/${username}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ...callData, customerCode: customerCode }) // callData'ya customerCode'u ekleyin
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('API isteği başarısız oldu.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('API yanıtı:', data);
-
-                // Eğer bir yönlendirme varsa, bu URL'ye yönlendirin
-                if (data.redirect) {
-                    window.location.href = data.redirect; // callResult sayfasına yönlendir
-                }
-            })
-            .catch(error => {
-                console.error('Hata:', error);
-            });
-        }
-
-
-
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% block extra_scripts %}
+    <script src="{% static 'js/homepage.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="{% static 'js/homepage.js' %}"></script>
+{% endblock %}

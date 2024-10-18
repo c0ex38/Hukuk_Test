@@ -1,13 +1,10 @@
 import http.client
-import http.client
-import http.client
 import json
 import logging
 import urllib.parse
-import urllib.parse
-import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-
+import os  # Ortam değişkenleri için
+from django.http import HttpResponseForbidden
 import firebase_admin
 import requests
 from django.http import JsonResponse
@@ -18,12 +15,116 @@ from firebase_admin import credentials, db
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth.decorators import login_required
 
 # Firebase yapılandırması
 cred = credentials.Certificate('api/serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app/'
 })
+
+
+class LoginWithTokenView(APIView):
+    def get(self, request):
+        # Token'ı URL'den al
+        token = request.query_params.get("Token")
+        if not token:
+            return Response({"error": "Token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        token = token.strip()  # Token'daki gereksiz boşlukları temizle
+        print(f"Received Token: {token}")  # Debug: Token'ı kontrol et
+
+        # API isteği için gerekli payload
+        payload = json.dumps({
+            "Service": "LoginWithToken",
+            "Request": "LoginWithToken",
+            "Token": token
+        })
+
+        # Ortam değişkenlerinden authorization bilgilerini al
+        authorization_key = os.getenv("AUTHORIZATION_KEY", "Basic Y2Fncmkub3pheTpDYWdyaTIwMjQ=")
+        cookie_value = os.getenv("COOKIE_PHPSESSID", "pnkquosabd9r2j5vi73n71id05")
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': authorization_key,
+            'Cookie': f'PHPSESSID={cookie_value}'
+        }
+
+        # API'ye istek gönder
+        try:
+            conn = http.client.HTTPSConnection("talipsan.com.tr")
+            conn.request("POST", "/restapi?key=1837837", payload, headers)
+
+            res = conn.getresponse()
+            data = res.read()
+            status_code = res.status  # HTTP yanıt kodunu al
+            print(f"API Response Status: {status_code}")
+
+            response_data = json.loads(data.decode('utf-8'))  # JSON yanıtını ayrıştır
+
+            if status_code == 200 and 'username' in response_data:
+                # Kullanıcı adını oturuma kaydet
+                username = response_data['username']
+                request.session['username'] = username
+                print(f"Username '{username}' saved to session.")
+
+                # Kullanıcının admin olup olmadığını kontrol et
+                is_admin = request.user.has_perm('modules.customers.admin')
+                request.session['is_admin'] = is_admin  # Admin bilgisini oturuma kaydet
+
+                # Kullanıcıyı Firebase'e kaydet
+                save_user_to_firebase(username, is_admin)
+
+                # Giriş yaptıktan sonra kullanıcı paneline yönlendir
+                return redirect('/user-panel/')
+
+            # Başarısız API yanıtını işleme
+            return Response({"error": response_data.get('error', 'Unknown error')}, status=status_code)
+
+        except http.client.HTTPException as e:
+            print(f"HTTPException: {str(e)}")
+            return Response({"error": "API request failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except json.JSONDecodeError as e:
+            print(f"JSONDecodeError: {str(e)}")
+            return Response({"error": "Invalid response from API."}, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            print(f"General Exception: {str(e)}")
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def save_user_to_firebase(username, is_admin):
+    ref = db.reference('users')  # Firebase referansı
+    user_data = {
+        'username': username,
+        'is_admin': is_admin
+    }
+
+    # Kullanıcı var mı kontrol et
+    existing_user = ref.child(username).get()
+    if not existing_user:
+        ref.child(username).set(user_data)  # Yeni kullanıcıyı ekle
+        print(f"User '{username}' added to Firebase.")
+    else:
+        print(f"User '{username}' already exists in Firebase.")
+
+
+def user_panel(request):
+    # Kullanıcı session'da username var mı kontrol et
+    username = request.session.get('username')
+
+    if not username:  # Eğer username oturumda değilse
+        return HttpResponseForbidden("Erişim izni yoktur.")
+
+    # Admin bilgisini oturumdan alıyoruz
+    is_admin = request.session.get('is_admin', False)
+
+    context = {
+        'username': username,
+        'is_admin': is_admin
+    }
+
+    return render(request, 'user_panel.html', context)
 
 
 class AddPhoneLogView(APIView):
@@ -35,7 +136,7 @@ class AddPhoneLogView(APIView):
             return Response({"error": "Phone number is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Firebase'de kullanıcıya ait call_logs referansını oluştur
-        ref = db.reference(f'users/{username}/call_logs')
+        ref = db.reference(f'users/{username}/call')
 
         # Telefona doğrudan call_logs altında yaz
         try:
@@ -56,21 +157,18 @@ class CallHistoryListenerView(APIView):
 
         # Her bir çağrıyı işleyin
         for uniq_id, call_info in data.items():
-            call_duration = call_info.get('call_duration')
-            call_type = call_info.get('call_type')
             caller_id = call_info.get('caller_id')
             phone_number = call_info.get('phone_number')
             status_value = call_info.get('status')
 
             # Başarıyla alındığında yanıt döndür
             return Response({
-                "message": "Call data processed successfully.",
-                "redirect": f"/callResult?username={username}&phone_number={phone_number}&status={status_value}&duration={call_duration}"
+                "username": username,
+                "phone_number": phone_number,
+                "status": status_value,
             }, status=status.HTTP_200_OK)
 
         return Response({"error": "No valid call data found."}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 
@@ -86,76 +184,6 @@ class SendDataToFirebase(APIView):
 
 
 
-class LoginWithTokenView(APIView):
-    def get(self, request):
-        # Token'ı URL'den sorgu parametresi olarak al
-        token = request.query_params.get("Token")
-
-        # Token kontrolü
-        if not token:
-            return Response({"error": "Token is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        token = token.strip()  # Token'daki gereksiz boşlukları ve yeni satırları kaldır
-        print(f"Received Token: {token}")  # Debug: Token'ı kontrol et
-
-        # API isteği için payload'ı oluştur
-        payload = json.dumps({
-            "Service": "LoginWithToken",
-            "Request": "LoginWithToken",
-            "Token": token
-        })
-
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic Y2Fncmkub3pheTpDYWdyaTIwMjQ=',
-            'Cookie': 'PHPSESSID=pnkquosabd9r2j5vi73n71id05'
-        }
-
-        # API'ye istek gönder
-        try:
-            conn = http.client.HTTPSConnection("talipsan.com.tr")
-            conn.request("POST", "/restapi?key=1837837", payload, headers)
-
-            res = conn.getresponse()
-            data = res.read()
-            status_code = res.status  # HTTP durum kodunu al
-            print(f"API Response Status: {status_code}")  # API yanıt durum kodunu kontrol et
-            response_data = json.loads(data.decode('utf-8'))  # JSON olarak çözümle
-
-            if status_code == 200:
-                username = response_data.get('username')
-                if username:
-                    request.session['username'] = username
-                    print(f"username '{username}' oturuma kaydedildi.")
-
-                    # Kullanıcının admin olup olmadığını kontrol et
-                    is_admin = request.user.has_perm('modules.customers.admin')
-
-                    # Kullanıcı bilgilerini Firebase'e kaydet
-                    save_user_to_firebase(username, is_admin)
-
-                # Başarılı yanıt sonrası customer_details sayfasına yönlendir
-                return redirect('/homepage/')
-
-            return Response(response_data)  # Başarılı yanıtı döndür
-        except Exception as e:
-            return Response({"error": f"API request failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def save_user_to_firebase(username, is_admin):
-    ref = db.reference('users')  # Kullanıcı bilgilerini saklamak için bir referans oluşturun
-    user_data = {
-        'username': username,
-        'is_admin': is_admin
-    }
-
-    # Kullanıcı daha önce kaydedilmiş mi kontrol et
-    existing_user = ref.child(username).get()
-    if not existing_user:
-        ref.child(username).set(user_data)  # Yeni kullanıcıyı ekle
-        print(f"User '{username}' added to Firebase.")
-    else:
-        print(f"User '{username}' already exists in Firebase.")
 
 
 # Query string formatını oluşturan fonksiyon
@@ -232,7 +260,7 @@ def fetch_customer_details(request, customer_code):
     session_id = session_id_response.json().get("session_id")
     print(f"Alınan session_id: {session_id}")  # Debugging
 
-    # Çağrılacak prosedürleri tanımla
+    # Çağrılacak prosedürler
     procedures = {
         "customer_details": "[360Portal].dbo.CustomerService_getCustomerDetail",
         "customer_phones": "[360Portal].dbo.CustomerService_getCustomerPhones",
@@ -241,6 +269,7 @@ def fetch_customer_details(request, customer_code):
         "customer_attributes": "[360Portal].dbo.CustomerService_getCustomerAttributes",
         "customer_messages": "[360Portal].dbo.CustomerService_getCustomerMessages",
         "customer_addresses": "[360Portal].dbo.CustomerService_getCustomerAddresses",
+        "customer_installments": "[360Portal].dbo.CustomerService_getCustomerInstallments",
     }
 
     # ThreadPoolExecutor ile prosedürleri paralel olarak çağır
@@ -249,21 +278,17 @@ def fetch_customer_details(request, customer_code):
                    for name, proc_name in procedures.items()}
         results = {name: future.result() for name, future in futures.items()}
 
-    # Müşteri detayları ve telefonları çek
-    customer_details = replace_none_with_null(results.get('customer_details'))
-    customer_phones = replace_none_with_null(results.get('customer_phones'))
-
     # JSON formatında veri döndür
     return JsonResponse({
-        'customer_details': customer_details,
-        'customer_phones': customer_phones,
+        'customer_details': replace_none_with_null(results.get('customer_details')),
+        'customer_phones': replace_none_with_null(results.get('customer_phones')),
         'customer_notes1': replace_none_with_null(results.get('customer_notes1')),
         'customer_notes2': replace_none_with_null(results.get('customer_notes2')),
         'customer_attributes': replace_none_with_null(results.get('customer_attributes')),
         'customer_messages': replace_none_with_null(results.get('customer_messages')),
-        'customer_addresses': replace_none_with_null(results.get('customer_addresses'))
+        'customer_addresses': replace_none_with_null(results.get('customer_addresses')),
+        'customer_installments': replace_none_with_null(results.get('customer_installments'))
     })
-
 
 def replace_none_with_null(data):
     if isinstance(data, list):
@@ -381,11 +406,13 @@ def add_customer_communication(request):
         try:
             response = requests.post(procedure_url, json=procedure_info)
             response.raise_for_status()
-            return JsonResponse(response.json(), status=200)
+            # response.json() dönen veri bir sözlük değilse, safe=False kullanarak JsonResponse ile döndür
+            return JsonResponse(response.json(), status=200, safe=False)
         except requests.exceptions.HTTPError as e:
             return JsonResponse({"error": f"Prosedür başarısız: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
+
 
 
 class GetCustomerNoteCategoriesView(APIView):
@@ -533,35 +560,15 @@ def add_customer_attribute(request):
     return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
 
 
-def homepage_view(request):
-    # Kullanıcının oturum açıp açmadığını kontrol et
-    username = request.session.get('username')  # Oturumda saklanan kullanıcı adı
-    is_logged_in = username is not None  # Kullanıcının giriş yapıp yapmadığını kontrol et
-
-    return render(request, 'homepage.html', {
-        'username': username,  # Kullanıcı adını şablona gönder
-        'is_logged_in': is_logged_in  # Kullanıcının giriş yapıp yapmadığını şablona gönder
-    })
-
-
-def customer_find_view(request):
-    username = request.session.get('username')  # Oturumda saklanan kullanıcı adı
-    return render(request, 'customerFind.html', {'username': username})
-
-
-def call_result_view(request):
-    # URL'den gelen verileri al
-    phone_number = request.GET.get("phone_number")
-    status = request.GET.get("status")
-    duration = request.GET.get("duration")
-    username = request.GET.get("username")
-
-    # Verileri template'e gönder
+def homepage(request):
+    username = request.session.get('username', 'Misafir')  # Giriş yapmamış kullanıcı için varsayılan
     context = {
-        'phone_number': phone_number,
-        'status': status,
-        'duration': duration,
         'username': username
     }
+    return render(request, 'homepage.html', context)
 
-    return render(request, 'callResult.html', context)  # 'callResult.html' adlı template dosyasını render et
+
+# Müşteri Bulma Sayfası View
+def customer_find_view(request):
+    return render(request, 'customer_find.html')
+
