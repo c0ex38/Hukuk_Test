@@ -149,6 +149,14 @@
 
         <!-- Özellikler Tab -->
         <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
+            <div class="d-flex justify-content-between mb-3">
+                <h4>Özellikler</h4>
+                <!-- Özellik Ekle Butonu -->
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttributeModal">
+                    <i class="fas fa-plus-circle"></i> Özellik Ekle
+                </button>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -180,7 +188,6 @@
                 </table>
             </div>
         </div>
-
     </div>
 
 
@@ -231,6 +238,41 @@
                             <label for="phoneNumber" class="form-label">Telefon Numarası</label>
                             <input type="text" class="form-control" id="phoneNumber" placeholder="Telefon numarası girin" required>
                         </div>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Özellik Ekleme Modülü (Bootstrap Modal) -->
+    <div class="modal fade" id="addAttributeModal" tabindex="-1" aria-labelledby="addAttributeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addAttributeModalLabel">Yeni Özellik Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAttributeForm">
+                        <div class="mb-3">
+                            <label for="attributeType" class="form-label">Özellik Türü</label>
+                            <select class="form-select" id="attributeType" required>
+                                <option selected disabled>Özellik türü seçin...</option>
+                                <!-- Dinamik olarak doldurulacak -->
+                            </select>
+                        </div>
+
+                        <!-- Dinamik olarak gelen veriler (Attribute listesi) -->
+                        <div id="dynamicAttributeSection" class="mb-3" style="display:none;">
+                            <label for="dynamicAttributeSelect" class="form-label">Özellik Seçin</label>
+                            <select class="form-select" id="dynamicAttributeSelect" required>
+                                <option selected disabled>Özellik seçin...</option>
+                                <!-- API'den gelen seçenekler buraya eklenecek -->
+                            </select>
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Kaydet</button>
                     </form>
                 </div>

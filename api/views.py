@@ -143,7 +143,8 @@ class AddPhoneLogView(APIView):
             ref.set({'phone_number': phone_number})  # Veriyi doğrudan call_logs altında ayarlayın
             return Response({"message": "Phone log added successfully!"}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({"error": f"Failed to add phone log: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"Failed to add phone log: {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CallHistoryListenerView(APIView):
@@ -171,7 +172,6 @@ class CallHistoryListenerView(APIView):
         return Response({"error": "No valid call data found."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class SendDataToFirebase(APIView):
     def post(self, request):
         data = request.data  # İstemciden gelen veriyi al
@@ -181,9 +181,6 @@ class SendDataToFirebase(APIView):
         ref.push(data)  # Veriyi gönder
 
         return Response({"message": "Veri başarıyla gönderildi!"}, status=status.HTTP_201_CREATED)
-
-
-
 
 
 # Query string formatını oluşturan fonksiyon
@@ -289,6 +286,7 @@ def fetch_customer_details(request, customer_code):
         'customer_addresses': replace_none_with_null(results.get('customer_addresses')),
         'customer_installments': replace_none_with_null(results.get('customer_installments'))
     })
+
 
 def replace_none_with_null(data):
     if isinstance(data, list):
@@ -414,7 +412,6 @@ def add_customer_communication(request):
     return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
 
 
-
 class GetCustomerNoteCategoriesView(APIView):
     def get(self, request):
         # Session ID alma
@@ -478,17 +475,16 @@ def customer_note_view(request):
 
         # POST verilerini al
         customer_code = request.POST.get('CustomerCode')
-        alert_type = request.POST.get('AlertTypeNote1')
-        date = request.POST.get('Date')
+        user_warning_code = request.POST.get('UserWarningCode')
         username = request.session.get('username')
         phone = request.POST.get('Phone')
         note = request.POST.get('Note')
 
         # Description formatını oluştur
-        description = f"{alert_type}. Görüşülen tel no: {phone}, {note}"  # {alert}, {phone}, {note} formatında
+        description = f"{user_warning_code}. Görüşülen tel no: {phone}, {note}"
 
         # run_customer_notes fonksiyonunu çağır
-        result = run_customer_notes(session_id, customer_code, alert_type, date, username, description)
+        result = run_customer_notes(session_id, customer_code, user_warning_code, username, description)
 
         if result is None:
             return JsonResponse({"error": "Müşteri notu ekleme başarısız."}, status=500)
@@ -496,7 +492,7 @@ def customer_note_view(request):
         return JsonResponse(result, status=200)
 
     return JsonResponse({"error": "Invalid request method."}, status=400)
-    
+
 
 @csrf_exempt
 def get_customer_attributes_list(request, attribute_type_code):
@@ -556,7 +552,7 @@ def add_customer_attribute(request):
             return JsonResponse({"success": "Özellik başarıyla güncellendi."})
         except requests.exceptions.HTTPError as e:
             return JsonResponse({"error": f"Prosedür başarısız: {str(e)}"}, status=500)
-    
+
     return JsonResponse({"error": "Geçersiz istek yöntemi."}, status=400)
 
 
@@ -572,3 +568,6 @@ def homepage(request):
 def customer_find_view(request):
     return render(request, 'customer_find.html')
 
+
+def call_result(request):
+    return render(request, 'call_result.html')

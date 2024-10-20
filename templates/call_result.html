@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Arama Sonucu{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h1>Arama Sonucu</h1>
+        </div>
+        <div class="card-body">
+            <!-- Gelen Çağrı Bilgileri -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <p><strong>Telefon Numarası:</strong> <span id="phone-number" class="fw-bold"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kategori Radio Button Menüsü -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5>Konu Seçiniz:</h5>
+                    <div id="category-container" class="row row-cols-1 row-cols-md-3 g-3" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Radio buttonlar buraya yüklenecek -->
+                        <p>Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Not Ekleme Alanı -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5>Not Ekle:</h5>
+                    <textarea id="user-note" class="form-control" rows="4" placeholder="Notunuzu buraya yazın..."></textarea>
+                </div>
+            </div>
+
+            <!-- İşlemi Onayla ve Not Kaydet Butonları -->
+            <div class="text-center">
+                <button id="save-note-btn" class="btn btn-success btn-lg px-4">
+                    <i class="fas fa-check-circle"></i> İşlemi Onayla ve Notu Kaydet
+                </button>
+            </div>
+
+            <!-- Seçili Kategori Kodu (Gizli veya açıklama için gösterilebilir) -->
+            <div class="alert alert-secondary mt-4">
+                <p><strong>Seçili Konu Kodu:</strong> <span id="selected-category-code" class="fw-bold">Seçilmedi</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Telefon numarasını URL'den al
+        const urlParams = new URLSearchParams(window.location.search);
+        const phoneNumber = urlParams.get('phone_number');
+
+        // Telefon numarasını sayfada göster
+        document.getElementById('phone-number').innerText = phoneNumber;
+
+        // Kategori API'sine istek yap ve radio button'ları doldur
+        fetchCategories();
+
+        // Radio button seçimi değiştiğinde, seçilen kategori kodunu göster
+        const categoryContainer = document.getElementById('category-container');
+        categoryContainer.addEventListener('change', function () {
+            const selectedRadio = document.querySelector('input[name="category"]:checked');
+            document.getElementById('selected-category-code').innerText = selectedRadio ? selectedRadio.value : 'Seçilmedi';
+        });
+
+        // İşlemi Onayla ve Not Kaydet butonuna tıklandığında notu kaydet
+        document.getElementById('save-note-btn').addEventListener('click', function () {
+            saveNote();
+        });
+    });
+
+    // Kategori verilerini almak için API isteğini çağıran fonksiyon
+    function fetchCategories() {
+        const categoryContainer = document.getElementById('category-container');
+
+        // Yükleniyor mesajını ekle
+        categoryContainer.innerHTML = '<p>Yükleniyor...</p>';
+
+        fetch('/api/get-customer-note-categories/')
+            .then(response => response.json())
+            .then(data => {
+                categoryContainer.innerHTML = '';  // Var olan içeriği temizle
+
+                // Eğer veri boşsa
+                if (data.length === 0) {
+                    categoryContainer.innerHTML = '<p>Hiç kategori bulunamadı</p>';
+                    return;
+                }
+
+                // Dönen verileri radio button olarak ekle
+                data.forEach(item => {
+                    const radioWrapper = document.createElement('div');
+                    radioWrapper.classList.add('form-check', 'col');  // Bootstrap form-check sınıfı
+
+                    const radioInput = document.createElement('input');
+                    radioInput.classList.add('form-check-input');
+                    radioInput.type = 'radio';
+                    radioInput.name = 'category';
+                    radioInput.id = `category-${item.UserWarningCode}`;
+                    radioInput.value = item.UserWarningCode;  // Backend'e gönderilecek kod
+
+                    const radioLabel = document.createElement('label');
+                    radioLabel.classList.add('form-check-label');
+                    radioLabel.htmlFor = `category-${item.UserWarningCode}`;
+                    radioLabel.textContent = item.UserWarningDescription;  // Kullanıcıya gösterilecek açıklama
+
+                    radioWrapper.appendChild(radioInput);
+                    radioWrapper.appendChild(radioLabel);
+                    categoryContainer.appendChild(radioWrapper);
+                });
+            })
+            .catch(error => {
+                console.error('Kategori yüklenirken hata oluştu:', error);
+                categoryContainer.innerHTML = '<p>Veri Yüklenemedi</p>';
+            });
+    }
+
+    // Notu kaydetme fonksiyonu
+    function saveNote() {
+        const selectedCategory = document.querySelector('input[name="category"]:checked');
+        const noteText = document.getElementById('user-note').value;
+
+        if (!selectedCategory) {
+            alert('Lütfen bir kategori seçin!');
+            return;
+        }
+
+        if (!noteText.trim()) {
+            alert('Lütfen bir not yazın!');
+            return;
+        }
+
+        const data = {
+            phone_number: document.getElementById('phone-number').innerText,
+            category_code: selectedCategory.value,
+            note: noteText
+        };
+
+        // Notu kaydetmek için API isteği gönder
+        fetch('/api/save-note/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')  // CSRF koruması
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Not başarıyla kaydedildi!');
+                document.getElementById('user-note').value = '';  // Not alanını temizle
+            } else {
+                alert('Not kaydedilirken bir hata oluştu.');
+            }
+        })
+        .catch(error => {
+            console.error('Not kaydedilirken bir hata oluştu:', error);
+        });
+    }
+
+    // CSRF token'ı almak için yardımcı fonksiyon
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

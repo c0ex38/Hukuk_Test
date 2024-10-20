@@ -22,32 +22,10 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Logo</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
-                    <!-- Ana Sayfa Linki -->
-                    <li class="nav-item">
-                        <a class="nav-link text-light" href="/homepage/">
-                            <i class="fas fa-home"></i> Ana Sayfa
-                        </a>
-                    </li>
-
-                    <!-- Oturumu Kapat Linki -->
-                    <li class="nav-item">
-                        <a class="nav-link text-light" href="/logout/">
-                            <i class="fas fa-sign-out-alt"></i> Oturumu Kapat
-                        </a>
-                    </li>
-
-                    <!-- Kullanıcı İsmi ve Profil İkonu -->
                     <li class="nav-item ms-3">
-                        <a class="nav-link text-light" href="/user-panel/" style="display: flex; align-items: center;">
-                            <img src="https://via.placeholder.com/40" class="rounded-circle me-2" alt="Profile Image" style="width: 40px; height: 40px;">
-                            <h5 class="mb-0">Hoşgeldin, {{ username }}</h5>
-                        </a>
+                        <a class="nav-link text-light" href="/user-panel/">Hoşgeldin, {{ username }}</a>
                     </li>
                 </ul>
 
@@ -60,17 +38,24 @@
 
     <!-- Sidebar -->
     <div class="d-flex">
-        <div class="sidebar bg-secondary p-3 text-white" style="width: 200px;">
+        <div class="sidebar bg-secondary bg-dark p-3 text-white" style="width: 170px;">
             <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="/homepage/">Ana Sayfa</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="/customer_find/">Müşteri Listem</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="/settings/">Ayarlar</a>
+                    <a class="nav-link text-white" href="/call_result/">Arama Sonuç</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="/reports/">Raporlar</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="/logout/">Çıkış Yap</a>
+                </li>
+
             </ul>
         </div>
 
@@ -83,7 +68,20 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
+    <!-- Firebase v8 JS SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+
+
+    <!-- Firebase dinleyici scriptini ekliyoruz -->
+    <script>
+        // Template'den gelen username'i global JavaScript değişkenine aktarıyoruz
+        const username = "{{ username }}";
+    </script>
+    <script src="{% static 'js/call_listener.js' %}"></script>
+
     {% block extra_scripts %}
     {% endblock %}
 </body>

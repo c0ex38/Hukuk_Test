@@ -152,36 +152,36 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function populateNotes(notes) {
-    const notesList = document.getElementById('notes-list');
-    notesList.innerHTML = ''; // Önceki notları temizle
+        const notesList = document.getElementById('notes-list');
+        notesList.innerHTML = ''; // Önceki notları temizle
 
-    notes.forEach(note => {
-        const row = document.createElement('tr'); // Satır oluştur
+        notes.forEach(note => {
+            const row = document.createElement('tr'); // Satır oluştur
 
-        const dateCell = document.createElement('td');
-        const alertTypeCell = document.createElement('td');
-        const descriptionCell = document.createElement('td');
-        const noteTakerCell = document.createElement('td');
+            const dateCell = document.createElement('td');
+            const alertTypeCell = document.createElement('td');
+            const descriptionCell = document.createElement('td');
+            const noteTakerCell = document.createElement('td');
 
-        // Tarihi dönüştür
-        const date = new Date(parseInt(note.DateNote1.replace('/Date(', '').replace(')/', '')));
-        dateCell.innerText = date.toLocaleDateString(); // Tarihi okunabilir formata dönüştür
+            // Tarihi dönüştür
+            const date = new Date(parseInt(note.DateNote1.replace('/Date(', '').replace(')/', '')));
+            dateCell.innerText = date.toLocaleDateString(); // Tarihi okunabilir formata dönüştür
 
-        // Hücrelere verileri yerleştir
-        alertTypeCell.innerText = note.AlertTypeNote1;
-        descriptionCell.innerText = note.DescriptionNote1;
-        noteTakerCell.innerText = note.NoteTakerNote1;
+            // Hücrelere verileri yerleştir
+            alertTypeCell.innerText = note.AlertTypeNote1;
+            descriptionCell.innerText = note.DescriptionNote1;
+            noteTakerCell.innerText = note.NoteTakerNote1;
 
-        // Satıra hücreleri ekle
-        row.appendChild(dateCell);
-        row.appendChild(alertTypeCell);
-        row.appendChild(descriptionCell);
-        row.appendChild(noteTakerCell);
+            // Satıra hücreleri ekle
+            row.appendChild(dateCell);
+            row.appendChild(alertTypeCell);
+            row.appendChild(descriptionCell);
+            row.appendChild(noteTakerCell);
 
-        // Satırı tabloya ekle
-        notesList.appendChild(row);
-    });
-}
+            // Satırı tabloya ekle
+            notesList.appendChild(row);
+        });
+    }
 
 
     function populateMessages(messages) {
@@ -260,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-
     // Modal formunu işleyip API'ye POST isteği yapalım
     addPhoneForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -289,32 +288,32 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(postData)
         })
-        .then(response => response.json())
-        .then(data => {
-            // Hide loading overlay
-            loadingOverlay.style.display = 'none';
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
 
-            if (data.error) {
-                console.error('Hata:', data.error);
-                alert('Telefon bilgisi eklenirken bir hata oluştu.');
-            } else {
-                alert('Telefon bilgisi başarıyla eklendi!');
-                // Başarılı olursa telefon bilgilerini tekrar yükle
-                fetchCustomerDetails(searchInput.value);
+                if (data.error) {
+                    console.error('Hata:', data.error);
+                    alert('Telefon bilgisi eklenirken bir hata oluştu.');
+                } else {
+                    alert('Telefon bilgisi başarıyla eklendi!');
+                    // Başarılı olursa telefon bilgilerini tekrar yükle
+                    fetchCustomerDetails(searchInput.value);
 
-                // Modalı kapat
-                const addPhoneModal = new bootstrap.Modal(document.getElementById('addPhoneModal'));
-                addPhoneModal.hide();  // Close the modal
-                addPhoneForm.reset();  // Formu sıfırlamak için
-            }
-        })
-        .catch(error => {
-            // Hide loading overlay
-            loadingOverlay.style.display = 'none';
+                    // Modalı kapat
+                    const addPhoneModal = new bootstrap.Modal(document.getElementById('addPhoneModal'));
+                    addPhoneModal.hide();  // Close the modal
+                    addPhoneForm.reset();  // Formu sıfırlamak için
+                }
+            })
+            .catch(error => {
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
 
-            console.error('Hata:', error);
-            alert('API isteği sırasında bir hata oluştu.');
-        });
+                console.error('Hata:', error);
+                alert('API isteği sırasında bir hata oluştu.');
+            });
     });
 
     // CSRF token'ı almak için yardımcı fonksiyon
@@ -332,4 +331,144 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return cookieValue;
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const attributeTypes = {
+        1: "Hesap Durumu",
+        2: "Hukuk Servisi",
+        3: "Ödeme Durumu",
+        4: "Avukat İşlemleri",
+        5: "Takip İşlemleri",
+        6: "Mektup",
+        7: "Özel Müşteri",
+        8: "Meslek Grubu",
+        9: "Üniversite",
+        10: "Fakülte MYO",
+        11: "Bölümü",
+        12: "Gece/Gündüz",
+        13: "Sözleşme Durumu",
+        14: "Muhasebe Türü",
+        15: "Taksit Yapabilir",
+        16: "İnternet Taksitli Satış",
+        17: "Müşteri Özellik 17",
+        18: "İcra Mahkemesi",
+        19: "Müşteri Özellik 19",
+        20: "Müşteri Özellik 20",
+        21: "Müşteri Özellik 21",
+        22: "Müşteri Özellik 22",
+        23: "Müşteri Özellik 23",
+        24: "Müşteri Özellik 24",
+        25: "Müşteri Özellik 25"
+    };
+
+        const attributeTypeSelect = document.getElementById('attributeType');
+        const dynamicAttributeSection = document.getElementById('dynamicAttributeSection');
+        const dynamicAttributeSelect = document.getElementById('dynamicAttributeSelect');
+
+        // Dinamik olarak dropdown menüsüne seçenekleri ekleyelim
+        for (const [code, description] of Object.entries(attributeTypes)) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = description;
+        attributeTypeSelect.appendChild(option);
+    }
+
+        // Özellik türü seçildiğinde ikinci adım olan dinamik attribute listesini yükleme
+        attributeTypeSelect.addEventListener('change', function () {
+        const selectedTypeCode = attributeTypeSelect.value;
+
+        // Eğer bir özellik türü seçildiyse, API'den dinamik verileri al
+        if (selectedTypeCode) {
+        fetch(`/api/get-customer-attribute-list/${selectedTypeCode}/`)
+        .then(response => response.json())
+        .then(data => {
+        dynamicAttributeSection.style.display = 'block';  // Dinamik alanı göster
+        dynamicAttributeSelect.innerHTML = '';  // Var olan içerikleri temizle
+
+        const defaultOption = document.createElement('option');
+        defaultOption.textContent = 'Özellik seçin...';
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        dynamicAttributeSelect.appendChild(defaultOption);
+
+        // Dropdown olarak gelen attribute verilerini ekle
+        data.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.AttributeCode;  // Backend'e gönderilecek kod
+        option.textContent = item.AttributeDescription;  // Kullanıcıya gösterilecek açıklama
+        dynamicAttributeSelect.appendChild(option);
+    });
+    })
+        .catch(error => {
+        console.error('Dinamik attribute yüklenirken hata oluştu:', error);
+        dynamicAttributeSection.style.display = 'none';
+    });
+    }
+    });
+
+        // Form gönderimi işleme
+        const addAttributeForm = document.getElementById('addAttributeForm');
+        addAttributeForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const selectedTypeCode = attributeTypeSelect.value;
+        const selectedAttributeCode = dynamicAttributeSelect.value;
+
+        if (!selectedAttributeCode) {
+        alert('Lütfen bir özellik seçin.');
+        return;
+    }
+
+        const postData = {
+        CustomerCode: '12345',
+        AttributeTypeCode: selectedTypeCode,
+        AttributeCode: selectedAttributeCode,
+        username: 'kullaniciadi'
+    };
+
+        // API'ye POST isteği
+        fetch(`/api/add-customer-attribute/`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')  // CSRF koruması için
+    },
+        body: JSON.stringify(postData)
+    })
+        .then(response => response.json())
+        .then(data => {
+        if (data.success) {
+        alert('Özellik başarıyla eklendi!');
+        // Formu temizle ve modalı kapat
+        addAttributeForm.reset();
+        const addAttributeModal = new bootstrap.Modal(document.getElementById('addAttributeModal'));
+        addAttributeModal.hide();
+        // Yeni özelliği tabloya ekle
+        fetchAttributes();  // Özellikleri yeniden yükleme fonksiyonu
+    } else {
+        alert('Bir hata oluştu.');
+    }
+    })
+        .catch(error => {
+        console.error('API isteği sırasında bir hata oluştu:', error);
+        alert('API isteği sırasında bir hata oluştu.');
+    });
+    });
+
+        // CSRF token almak için yardımcı fonksiyon
+        function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+    }
+    }
+    }
+        return cookieValue;
+    }
+    });
 });
