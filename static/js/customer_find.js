@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function () {
         customers.forEach(customer => {
             const row = document.createElement('tr');
 
+            // Satırı tıklanabilir yap ve "homepage" sayfasına yönlendir
+            row.addEventListener('click', function() {
+                const customerCode = customer.CustomerCode;
+                // "homepage" sayfasına müşteri kodu ile yönlendir
+                window.location.href = `/homepage?customerCode=${encodeURIComponent(customerCode)}`;
+            });
+
+
             // Müşteri bilgilerini hücrelere yerleştir
             const customerCodeCell = createCell(customer.CustomerCode);
             const identityNumCell = createCell(customer.IdentityNum);
@@ -62,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             customersTableBody.appendChild(row);
         });
     }
+
 
     // Yardımcı fonksiyon: tablo hücreleri oluşturur
     function createCell(text) {
