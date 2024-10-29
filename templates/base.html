@@ -14,8 +14,8 @@
 <body>
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">İşleniyor...</span>
+        <div class="bar">
+            <div class="ball"></div>
         </div>
     </div>
 
@@ -24,8 +24,8 @@
         <div class="container-fluid">
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
-                    <li class="nav-item ms-3">
-                        <a class="nav-link text-light" href="/user-panel/">Hoşgeldin, {{ username }}</a>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="/user-panel/">{{ username }}</a>
                     </li>
                 </ul>
 

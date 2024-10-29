@@ -1,12 +1,13 @@
 import http.client
 import json
 import logging
+import os  # Ortam değişkenleri için
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-import os  # Ortam değişkenleri için
-from django.http import HttpResponseForbidden
+
 import firebase_admin
 import requests
+from django.http import HttpResponseForbidden
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -15,7 +16,7 @@ from firebase_admin import credentials, db
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 # Firebase yapılandırması
 cred = credentials.Certificate('api/serviceAccountKey.json')
@@ -323,6 +324,7 @@ def run_proc(session_id, username, customerCode=None, identityNum=None, name=Non
     # procedure_info ve procedure_url içeriğini loglayın
     logging.debug(f"Prosedür URL'si: {procedure_url}")
     logging.debug(f"Giden Parametreler: {json.dumps(procedure_info, indent=2)}")
+    print(f"Giden Parametreler: {json.dumps(procedure_info, indent=2)}")  # Konsola yazdır
 
     try:
         response = requests.post(procedure_url, json=procedure_info)
@@ -331,9 +333,11 @@ def run_proc(session_id, username, customerCode=None, identityNum=None, name=Non
         return response.json()
     except requests.exceptions.HTTPError as e:
         logging.error(f"Prosedür başarısız. HTTPError: {e}, Yanıt: {response.text}")
+        print(f"Prosedür başarısız. HTTPError: {e}, Yanıt: {response.text}")  # Konsola yazdır
         return None
     except requests.exceptions.RequestException as e:
         logging.error(f"Prosedür başarısız. RequestException: {e}")
+        print(f"Prosedür başarısız. RequestException: {e}")  # Konsola yazdır
         return None
 
 
@@ -344,17 +348,21 @@ def customer_search_view(request):
     if request.method == 'GET':
         username = request.session.get('username')
         if not username:
+            logging.error("Kullanıcı oturum açmamış.")
+            print("Kullanıcı oturum açmamış.")  # Konsola yazdır
             return JsonResponse({"error": "Kullanıcı oturum açmamış."}, status=403)
 
-        # Her çağrıda session_id almak için get-session-id endpointine istek gönder
+        # Session ID'yi almak için istekte bulun
         session_id_response = requests.get("http://127.0.0.1:8000/api/get-session-id/")
 
         if session_id_response.status_code != 200 or "session_id" not in session_id_response.json():
             logging.error("Session ID alınamadı.")
+            print("Session ID alınamadı.")  # Konsola yazdır
             return JsonResponse({"error": "Session ID alınamadı."}, status=500)
 
         session_id = session_id_response.json().get("session_id")
-        print(username)
+        print(f"session_id: {session_id}")  # Konsola yazdır
+        print(f"username: {username}")  # Konsola yazdır
         logging.debug(f"Form verileri alındı - username: {username}")
 
         # run_proc fonksiyonunu çağır ve username'i kullan
@@ -362,14 +370,17 @@ def customer_search_view(request):
 
         if result is None:
             logging.error("run_proc fonksiyonu başarısız oldu veya boş sonuç döndürdü.")
+            print("run_proc fonksiyonu başarısız oldu veya boş sonuç döndürdü.")  # Konsola yazdır
             return JsonResponse({"error": "Müşteri araması başarısız."}, status=500)
 
         # Telefon numaralarını ayır ve her müşteri için yeni bir anahtara ekle
         for customer in result:
             customer['PhoneList'] = customer['Phone'].split(',') if 'Phone' in customer and customer['Phone'] else []
+            print(f"Müşteri verisi: {customer}")  # Müşteri verisini konsola yazdırın
 
     # JSON formatında yanıt döndür
     return JsonResponse({"result": result})
+
 
 
 @csrf_exempt
@@ -399,6 +410,7 @@ def add_customer_communication(request):
                 {"Name": "username", "Value": username},
             ]
         }
+        print(procedure_info)
 
         procedure_url = f"http://176.236.176.155:1260/(S({session_id}))/IntegratorService/RunProc"
         try:

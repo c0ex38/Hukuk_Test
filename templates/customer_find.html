@@ -4,11 +4,18 @@
 {% block title %}Arama Listem{% endblock %}
 
 {% block content %}
-<div id="customer-find-content" class="container">
-    <h1 class="mb-4 text-center">Müşteri Arama Listesi</h1>
+<div id="customer-find-content" class="container my-5 position-relative">
+    <h1 class="mb-4 text-center text-primary">Müşteri Arama Listesi</h1>
+
+    <!-- Loading Animation -->
+    <div id="loading-animation" class="loading-animation" style="display: none;">
+        <div class="bar">
+            <div class="ball"></div>
+        </div>
+    </div>
 
     <!-- Müşteri Bilgileri Tablosu -->
-    <div class="table-responsive shadow-sm mt-4">
+    <div class="table-responsive shadow-sm rounded bg-light p-3 mt-4">
         <table class="table table-striped table-hover table-bordered align-middle text-center">
             <thead class="table-dark sticky-top">
                 <tr>
@@ -27,13 +34,172 @@
         </table>
     </div>
 
+    <!-- Sayfalama Düğmeleri -->
+    <div id="pagination" class="d-flex justify-content-center mt-4">
+        <button id="load-more-btn" class="btn btn-primary">Daha Fazla Yükle</button>
+    </div>
+
     <!-- Mesaj gösterme alanı -->
-    <div id="message-container" class="alert alert-info mt-4" style="display: none;">
+    <div id="message-container" class="alert alert-info mt-4 text-center" style="display: none;">
         Yükleniyor...
     </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Loading Animation Styles */
+/* From Uiverse.io by G4b413l */
+.ball {
+  position: relative;
+  bottom: 50px;
+  left: calc(100% - 20px);
+  width: 50px;
+  height: 50px;
+  background: #fff;
+  border-radius: 50%;
+  animation: ball-move8234 3s ease-in-out 1s infinite alternate;
+}
+
+.ball::after {
+  position: absolute;
+  content: '';
+  top: 25px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  background: #000;
+  border-radius: 50%;
+}
+
+.bar {
+  width: 200px;
+  height: 12.5px;
+  background: #FFDAAF;
+  border-radius: 30px;
+  transform: rotate(-15deg);
+  animation: up-down6123 3s ease-in-out 1s infinite alternate;
+}
+
+@keyframes up-down6123 {
+  from {
+    transform: rotate(-15deg);
+  }
+  to {
+    transform: rotate(15deg);
+  }
+}
+
+@keyframes ball-move8234 {
+  from {
+    left: calc(100% - 40px);
+    transform: rotate(360deg);
+  }
+  to {
+    left: calc(0% - 20px);
+    transform: rotate(0deg);
+  }
+}
+
+.loading-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+</style>
+{% endblock %}
+
 {% block extra_scripts %}
-<script src="{% static 'js/customer_find.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const customersTableBody = document.getElementById('customers-body');
+    const messageContainer = document.getElementById('message-container');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadingAnimation = document.getElementById('loading-animation');
+    let currentPage = 1;
+
+    // İlk müşteri grubunu yükle
+    fetchCustomerDetails(currentPage);
+
+    // Sayfa düğmesi tıklandığında bir sonraki müşteri grubunu yükle
+    loadMoreBtn.addEventListener('click', () => {
+        currentPage++;
+        fetchCustomerDetails(currentPage);
+    });
+
+    // Müşteri bilgilerini çeken fonksiyon
+    function fetchCustomerDetails(page) {
+        toggleLoading(true); // Show loading animation
+        fetch(`/api/customer-search/?page=${page}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            toggleLoading(false); // Hide loading animation
+            populateCustomersTable(data.result);
+        })
+        .catch(error => {
+            toggleLoading(false); // Hide loading animation
+            showMessage('Müşteri arama sırasında hata oluştu. Lütfen tekrar deneyin.', 'alert-danger');
+            console.error('Müşteri arama sırasında hata oluştu:', error);
+        });
+    }
+
+
+    // Müşteri bilgilerini tabloya dolduran fonksiyon
+    function populateCustomersTable(customers) {
+        customers.forEach(customer => {
+            const row = document.createElement('tr');
+
+            // Müşteri Kodu hücresine yönlendirme bağlantısı ekle
+            const customerCodeCell = document.createElement('td');
+            const customerLink = document.createElement('a');
+            customerLink.href = `/homepage/?customerCode=${customer.CustomerCode}`;
+            customerLink.textContent = customer.CustomerCode;
+            customerLink.classList.add('text-decoration-none', 'text-primary');
+            customerLink.target = '_blank';
+            customerCodeCell.appendChild(customerLink);
+
+            // Diğer müşteri bilgilerini hücrelere yerleştir
+            row.appendChild(customerCodeCell);
+            row.appendChild(createCell(customer.IdentityNum));
+            row.appendChild(createCell(customer.Name));
+            row.appendChild(createCell(customer.Surname));
+            row.appendChild(createCell(customer.FatherName));
+            row.appendChild(createCell(customer.MotherName));
+
+            // Telefon numaralarını badge olarak listele
+            const phoneListCell = document.createElement('td');
+            phoneListCell.innerHTML = customer.PhoneList.map(phone =>
+                `<span class="badge bg-info text-dark me-1">${phone.trim()}</span>`
+            ).join('');
+            row.appendChild(phoneListCell);
+
+            // Satırı tabloya ekle
+            customersTableBody.appendChild(row);
+        });
+    }
+
+    // Yardımcı fonksiyon: tablo hücreleri oluşturur
+    function createCell(text) {
+        const cell = document.createElement('td');
+        cell.innerText = text;
+        return cell;
+    }
+
+    // Hata ve bilgilendirme mesajlarını gösteren fonksiyon
+    function showMessage(message, alertType) {
+        messageContainer.style.display = 'block';
+        messageContainer.className = `alert ${alertType}`;
+        messageContainer.textContent = message;
+    }
+
+    // Loading animation toggle function
+    function toggleLoading(isLoading) {
+        loadingAnimation.style.display = isLoading ? 'flex' : 'none';
+    }
+});
+</script>
 {% endblock %}
