@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erişim Yok</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            overflow: hidden;
+        }
+        .access-denied-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.3);
+            padding: 60px 50px;
+            max-width: 500px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .access-denied-icon {
+            font-size: 70px;
+            color: #dc3545;
+            margin-bottom: 20px;
+            animation: shake 0.7s ease-in-out infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .access-denied-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .access-denied-message {
+            font-size: 16px;
+            color: #666;
+            margin: 15px 0 30px;
+            line-height: 1.6;
+        }
+        .btn-custom {
+            width: 45%;
+            margin: 10px;
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            text-transform: uppercase;
+            transition: transform 0.3s, background 0.3s ease, color 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #ff5f6d;
+            border: none;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #ff3b4d;
+            transform: translateY(-3px);
+        }
+        .btn-secondary {
+            background-color: #ffc371;
+            color: #333;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #ffb94d;
+            color: white;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div class="access-denied-container">
+        <i class="fas fa-exclamation-triangle access-denied-icon"></i>
+        <h1 class="access-denied-title">Erişim Yetkiniz Yok</h1>
+        <p class="access-denied-message">Bu sayfaya erişim izniniz bulunmamaktadır. Lütfen giriş yapın veya ana sayfaya dönün.</p>
+
+        <div>
+            <a href="https://talipsan.com.tr/" class="btn btn-primary btn-custom">Giriş Yap</a>
+        </div>
+    </div>
+
+    <!-- Font Awesome ve Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

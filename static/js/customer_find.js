@@ -1,76 +1,80 @@
 document.addEventListener('DOMContentLoaded', function () {
     const customersTableBody = document.getElementById('customers-body');
-    const loadingOverlay = document.getElementById('loading-overlay');
     const messageContainer = document.getElementById('message-container');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+
+    let customersData = [];   // Tüm müşteri verileri
+    let filteredData = [];    // Filtrelenmiş müşteri verileri
+    let currentPage = 1;
+    const rowsPerPage = 10;   // Her sayfada gösterilecek satır sayısı
 
     // Sayfa yüklendiğinde müşteri bilgilerini getir
     fetchCustomerDetails();
 
     // Müşteri bilgilerini çeken fonksiyon
     function fetchCustomerDetails() {
-        showLoading(true);
-        fetch('/api/customer-search/', {
-            method: 'GET',
-        })
-        .then(response => response.json())
-        .then(data => {
-            showLoading(false);
-            populateCustomersTable(data.result);
-        })
-        .catch(error => {
-            showLoading(false);
-            messageContainer.style.display = 'block';
-            messageContainer.textContent = 'Müşteri arama sırasında hata oluştu. Lütfen tekrar deneyin.';
-            console.error('Müşteri arama sırasında hata oluştu:', error);
-        });
+        fetch('/api/customer-search/', { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                customersData = data.result;
+                filteredData = customersData; // İlk yüklemede filtrelenmiş veri tüm veriler olur
+                currentPage = 1;              // İlk sayfadan başlat
+                displayPage(currentPage);
+            })
+            .catch(error => {
+                messageContainer.style.display = 'block';
+                messageContainer.textContent = 'Müşteri arama sırasında hata oluştu. Lütfen tekrar deneyin.';
+                console.error('Müşteri arama sırasında hata oluştu:', error);
+            });
+    }
+
+    // Sayfa bilgilerini güncelleyen fonksiyon
+    function displayPage(page, data = filteredData) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = data.slice(start, end);
+
+        populateCustomersTable(pageData);
+        pageInfo.textContent = `Sayfa ${page}`;
+        prevPageBtn.parentElement.classList.toggle('disabled', page === 1);
+        nextPageBtn.parentElement.classList.toggle('disabled', end >= data.length);
     }
 
     // Müşteri bilgilerini tabloya dolduran fonksiyon
     function populateCustomersTable(customers) {
-        // Tabloyu temizle
         customersTableBody.innerHTML = '';
 
-        // Her müşteri için bir satır oluştur
         customers.forEach(customer => {
             const row = document.createElement('tr');
 
             // Satırı tıklanabilir yap ve "homepage" sayfasına yönlendir
             row.addEventListener('click', function() {
                 const customerCode = customer.CustomerCode;
-                // "homepage" sayfasına müşteri kodu ile yönlendir
-                window.location.href = `/homepage?customerCode=${encodeURIComponent(customerCode)}`;
+                // Yönlendirme URL'sini doğru oluşturduğunuzdan emin olun
+                window.location.href = `/homepage/?customerCode=${encodeURIComponent(customerCode)}`;
             });
 
 
             // Müşteri bilgilerini hücrelere yerleştir
-            const customerCodeCell = createCell(customer.CustomerCode);
-            const identityNumCell = createCell(customer.IdentityNum);
-            const nameCell = createCell(customer.Name);
-            const surnameCell = createCell(customer.Surname);
-            const fatherNameCell = createCell(customer.FatherName);
-            const motherNameCell = createCell(customer.MotherName);
+            row.appendChild(createCell(customer.CustomerCode));
+            row.appendChild(createCell(customer.IdentityNum));
+            row.appendChild(createCell(customer.Name));
+            row.appendChild(createCell(customer.Surname));
+            row.appendChild(createCell(customer.FatherName));
+            row.appendChild(createCell(customer.MotherName));
 
             // Telefon numaralarını badge olarak listele
             const phoneListCell = document.createElement('td');
-            const phoneList = customer.PhoneList.map(phone =>
+            phoneListCell.innerHTML = customer.PhoneList.map(phone =>
                 `<span class="badge bg-info text-dark me-1">${phone.trim()}</span>`
             ).join('');
-            phoneListCell.innerHTML = phoneList;
-
-            // Satıra hücreleri ekle
-            row.appendChild(customerCodeCell);
-            row.appendChild(identityNumCell);
-            row.appendChild(nameCell);
-            row.appendChild(surnameCell);
-            row.appendChild(fatherNameCell);
-            row.appendChild(motherNameCell);
             row.appendChild(phoneListCell);
 
-            // Satırı tabloya ekle
             customersTableBody.appendChild(row);
         });
     }
-
 
     // Yardımcı fonksiyon: tablo hücreleri oluşturur
     function createCell(text) {
@@ -79,13 +83,47 @@ document.addEventListener('DOMContentLoaded', function () {
         return cell;
     }
 
-    // Yükleniyor animasyonu göster/gizle
-    function showLoading(isLoading) {
-        if (isLoading) {
-            loadingOverlay.style.display = 'flex';
-            messageContainer.style.display = 'none';
-        } else {
-            loadingOverlay.style.display = 'none';
-        }
+    // Dinamik Filtreleme İşlevi
+    document.querySelectorAll('.filter-input').forEach(input => {
+        input.addEventListener('input', filterTable);
+    });
+
+    function filterTable() {
+        const filters = {};
+        document.querySelectorAll('.filter-input').forEach(input => {
+            const column = input.getAttribute('data-column');
+            const value = input.value.toLowerCase();
+            if (value) filters[column] = value;
+        });
+
+        // Filtrelenmiş veriyi global `filteredData` değişkenine ata
+        filteredData = customersData.filter(customer => {
+            return Object.keys(filters).every(column => {
+                const customerValue = Array.isArray(customer[column])
+                    ? customer[column].join(' ').toLowerCase() // Telefon numaraları gibi listeleri stringe çevir
+                    : (customer[column] || '').toString().toLowerCase();
+                return customerValue.includes(filters[column]);
+            });
+        });
+
+        currentPage = 1; // Filtreleme yapıldığında sayfayı 1'e döndür
+        displayPage(currentPage, filteredData);
     }
+
+    // Sayfa düğmeleri işlevleri
+    prevPageBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage--;
+            displayPage(currentPage, filteredData);
+        }
+    });
+
+    nextPageBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (currentPage * rowsPerPage < filteredData.length) {
+            currentPage++;
+            displayPage(currentPage, filteredData);
+        }
+    });
 });
