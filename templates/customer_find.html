@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Arama Listem{% endblock %}
+{% block title %}Müşteri Arama Listesi{% endblock %}
 
 {% block content %}
 <div id="customer-find-content" class="container my-5 position-relative">
@@ -38,12 +38,64 @@
     <div id="pagination" class="d-flex justify-content-center mt-4">
         <button id="load-more-btn" class="btn btn-primary">Daha Fazla Yükle</button>
     </div>
+<div id="customer-find-content" class="container my-5">
+    <h1 class="mb-4 text-center display-6">Müşteri Arama Listesi</h1>
 
+    <!-- Müşteri Bilgileri Tablosu -->
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">Müşteri Bilgileri</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered align-middle text-center mb-0">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th scope="col">Müşteri Kodu<br><input type="text" class="filter-input form-control" data-column="CustomerCode" placeholder="Filtrele"></th>
+                        <th scope="col">TC Kimlik Numarası<br><input type="text" class="filter-input form-control" data-column="IdentityNum" placeholder="Filtrele"></th>
+                        <th scope="col">Ad<br><input type="text" class="filter-input form-control" data-column="Name" placeholder="Filtrele"></th>
+                        <th scope="col">Soyad<br><input type="text" class="filter-input form-control" data-column="Surname" placeholder="Filtrele"></th>
+                        <th scope="col">Baba Adı<br><input type="text" class="filter-input form-control" data-column="FatherName" placeholder="Filtrele"></th>
+                        <th scope="col">Anne Adı<br><input type="text" class="filter-input form-control" data-column="MotherName" placeholder="Filtrele"></th>
+                        <th scope="col">Telefon Numaraları<br><input type="text" class="filter-input form-control" data-column="PhoneList" placeholder="Filtrele"></th>
+                    </tr>
+                </thead>
+                <tbody id="customers-body">
+                    <!-- Müşteri verileri dinamik olarak buraya eklenecek -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sayfalama Kontrolleri -->
+    <nav class="d-flex justify-content-center my-3">
+        <ul class="pagination">
+            <li class="page-item"><a class="page-link" href="#" id="prev-page">Önceki</a></li>
+            <li class="page-item"><span class="page-link" id="page-info">Sayfa 1</span></li>
+            <li class="page-item"><a class="page-link" href="#" id="next-page">Sonraki</a></li>
+        </ul>
+    </nav>
     <!-- Mesaj gösterme alanı -->
     <div id="message-container" class="alert alert-info mt-4 text-center" style="display: none;">
         Yükleniyor...
     </div>
 </div>
+
+<style>
+    /* Tablo Stil */
+    .card {
+        border-radius: 0.5rem;
+    }
+
+    .card-header {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    .filter-input {
+        margin-top: 0.5rem;
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_css %}

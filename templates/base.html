@@ -26,6 +26,8 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
                     <li class="nav-item">
                         <a class="nav-link text-light" href="/user-panel/">{{ username }}</a>
+                    <li class="nav-item ms-3">
+                        <a class="nav-link text-light" href="/user-panel/">{{username}}</a>
                     </li>
                 </ul>
 
@@ -50,12 +52,8 @@
                     <a class="nav-link text-white" href="/call_result/">Arama Sonuç</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="/reports/">Raporlar</a>
+                    <a class="nav-link text-light" href="{% url 'logout' %}">Çıkış Yap</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="/logout/">Çıkış Yap</a>
-                </li>
-
             </ul>
         </div>
 

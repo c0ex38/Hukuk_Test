@@ -4,7 +4,8 @@ import logging
 import os  # Ortam değişkenleri için
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-
+from django.contrib.auth import logout
+from django.http import HttpResponseForbidden
 import firebase_admin
 import requests
 from django.http import HttpResponseForbidden
@@ -569,7 +570,12 @@ def add_customer_attribute(request):
 
 
 def homepage(request):
-    username = request.session.get('username', 'Misafir')  # Giriş yapmamış kullanıcı için varsayılan
+    # Eğer kullanıcı giriş yapmamışsa
+    if 'username' not in request.session:
+        return render(request, 'access_denied.html')  # Erişim yok sayfasına yönlendir
+
+    # Kullanıcı giriş yapmışsa devam et
+    username = request.session.get('username')
     context = {
         'username': username
     }
@@ -583,3 +589,11 @@ def customer_find_view(request):
 
 def call_result(request):
     return render(request, 'call_result.html')
+
+
+def access_denied(request):
+    return render(request, 'access_denied.html')
+
+def logout_view(request):
+    logout(request)  # Kullanıcının oturumunu kapatır
+    return redirect("https://talipsan.com.tr/")  # Çıkış yaptıktan sonra yönlendir

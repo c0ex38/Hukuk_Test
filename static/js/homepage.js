@@ -7,16 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const customerCodeInput = searchInput.value; // CustomerCode
     const username = "{{ username }}"; // Kullanıcı adı
 
-    // URL'den customerCode parametresini al
-    const urlParams = new URLSearchParams(window.location.search);
-    const customerCode = urlParams.get('customerCode');
-
-    // Eğer customerCode varsa inputa yerleştir ve fonksiyonu çalıştır
-    if (customerCode) {
-        searchInput.value = customerCode;
-        fetchCustomerDetails(customerCode);
-    }
-
     // Modal form referansları
     const addPhoneForm = document.getElementById('addPhoneForm');
     const communicationType = document.getElementById('communicationType');
@@ -48,10 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // API çağrısını gerçekleştiren fonksiyon
     function fetchCustomerDetails(customerCode) {
-        // Show loading overlay
+        // Yükleniyor animasyonunu göster
         loadingOverlay.style.display = 'flex';
 
-        // Show loading messages
+        // Bilgi alanlarını temizle ve yükleniyor mesajlarını göster
         customerLoading.style.display = 'block';
         customerInfo.style.display = 'none';
         phonesLoading.style.display = 'block';
@@ -62,10 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/api/fetch-customer-details/${customerCode}/`)
             .then(response => response.json())
             .then(data => {
-                // Hide loading overlay
+                // Yükleniyor animasyonunu gizle
                 loadingOverlay.style.display = 'none';
 
-                // Fill customer details
+                // Müşteri bilgilerini doldur
                 if (data.customer_details) {
                     customerLoading.style.display = 'none';
                     customerInfo.style.display = 'block';
@@ -86,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     customerLoading.innerText = 'Müşteri bilgileri bulunamadı.';
                 }
 
-                // Populate phone information
+                // Telefon bilgilerini doldur
                 if (data.customer_phones) {
                     phonesLoading.style.display = 'none';
                     phonesTable.style.display = 'table';
@@ -110,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     phonesLoading.innerText = 'Telefon bilgileri bulunamadı.';
                 }
 
-                // Populate customer notes
+                // Diğer bilgileri doldur
                 populateNotes(data.customer_notes1);
                 populateMessages(data.customer_messages);
                 populateAttributes(data.customer_attributes);
@@ -465,8 +455,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cookie.substring(0, name.length + 1) === (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
-    }
-    }
+            }
+        }
     }
         return cookieValue;
     }
