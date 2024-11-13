@@ -4,50 +4,16 @@
 {% block title %}Müşteri Arama Listesi{% endblock %}
 
 {% block content %}
-<div id="customer-find-content" class="container my-5 position-relative">
-    <h1 class="mb-4 text-center text-primary">Müşteri Arama Listesi</h1>
-
-    <!-- Loading Animation -->
-    <div id="loading-animation" class="loading-animation" style="display: none;">
-        <div class="bar">
-            <div class="ball"></div>
-        </div>
-    </div>
-
-    <!-- Müşteri Bilgileri Tablosu -->
-    <div class="table-responsive shadow-sm rounded bg-light p-3 mt-4">
-        <table class="table table-striped table-hover table-bordered align-middle text-center">
-            <thead class="table-dark sticky-top">
-                <tr>
-                    <th scope="col">Müşteri Kodu</th>
-                    <th scope="col">TC Kimlik Numarası</th>
-                    <th scope="col">Ad</th>
-                    <th scope="col">Soyad</th>
-                    <th scope="col">Baba Adı</th>
-                    <th scope="col">Anne Adı</th>
-                    <th scope="col">Telefon Numaraları</th>
-                </tr>
-            </thead>
-            <tbody id="customers-body">
-                <!-- Müşteri verileri dinamik olarak buraya eklenecek -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Sayfalama Düğmeleri -->
-    <div id="pagination" class="d-flex justify-content-center mt-4">
-        <button id="load-more-btn" class="btn btn-primary">Daha Fazla Yükle</button>
-    </div>
 <div id="customer-find-content" class="container my-5">
-    <h1 class="mb-4 text-center display-6">Müşteri Arama Listesi</h1>
+    <h1 class="mb-4 text-center display-6 animate-title">Müşteri Arama Listesi</h1>
 
     <!-- Müşteri Bilgileri Tablosu -->
-    <div class="card shadow-sm border-0 mt-4">
+    <div class="card shadow-sm border-0 mt-4 animate-card">
         <div class="card-header bg-primary text-white text-center">
             <h2 class="mb-0">Müşteri Bilgileri</h2>
         </div>
         <div class="table-responsive">
-            <table class="table table-striped table-hover table-bordered align-middle text-center mb-0">
+            <table class="table table-striped table-hover table-bordered align-middle text-center mb-0 animate-table">
                 <thead class="table-light sticky-top">
                     <tr>
                         <th scope="col">Müşteri Kodu<br><input type="text" class="filter-input form-control" data-column="CustomerCode" placeholder="Filtrele"></th>
@@ -59,7 +25,7 @@
                         <th scope="col">Telefon Numaraları<br><input type="text" class="filter-input form-control" data-column="PhoneList" placeholder="Filtrele"></th>
                     </tr>
                 </thead>
-                <tbody id="customers-body">
+                <tbody id="customers-body" class="animate-rows">
                     <!-- Müşteri verileri dinamik olarak buraya eklenecek -->
                 </tbody>
             </table>
@@ -67,191 +33,122 @@
     </div>
 
     <!-- Sayfalama Kontrolleri -->
-    <nav class="d-flex justify-content-center my-3">
+    <nav class="d-flex justify-content-center my-3 animate-pagination">
         <ul class="pagination">
             <li class="page-item"><a class="page-link" href="#" id="prev-page">Önceki</a></li>
             <li class="page-item"><span class="page-link" id="page-info">Sayfa 1</span></li>
             <li class="page-item"><a class="page-link" href="#" id="next-page">Sonraki</a></li>
         </ul>
     </nav>
+
     <!-- Mesaj gösterme alanı -->
-    <div id="message-container" class="alert alert-info mt-4 text-center" style="display: none;">
+    <div id="message-container" class="alert alert-info mt-4 text-center animate-message" style="display: none;">
         Yükleniyor...
     </div>
 </div>
 
 <style>
-    /* Tablo Stil */
-    .card {
-        border-radius: 0.5rem;
+    /* Animation for Title */
+    .animate-title {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease-out forwards;
     }
 
-    .card-header {
-        font-size: 1.25rem;
-        font-weight: bold;
+    /* Card Fade-In Animation */
+    .animate-card {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease-out forwards 0.3s;
     }
 
+    /* Table and Row Animations */
+    .animate-table {
+        opacity: 0;
+        animation: fadeIn 1s ease-out forwards 0.5s;
+    }
+
+    .animate-rows tr {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInUp 0.6s ease-out forwards;
+        animation-delay: calc(0.3s + var(--row-index) * 0.05s);
+    }
+
+    /* Pagination Fade-In */
+    .animate-pagination {
+        opacity: 0;
+        animation: fadeIn 1s ease-out forwards 0.8s;
+    }
+
+    /* Message Slide-In Animation */
+    .animate-message {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        animation: slideIn 0.5s ease forwards;
+    }
+
+    /* Table Row Hover Effect */
+    .table-hover tbody tr:hover {
+        transform: scale(1.02);
+        transition: transform 0.3s ease;
+    }
+
+    /* Filter Input Focus Effect */
     .filter-input {
         margin-top: 0.5rem;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .filter-input:focus {
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Keyframes */
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
-{% endblock %}
-
-{% block extra_css %}
-<style>
-/* Loading Animation Styles */
-/* From Uiverse.io by G4b413l */
-.ball {
-  position: relative;
-  bottom: 50px;
-  left: calc(100% - 20px);
-  width: 50px;
-  height: 50px;
-  background: #fff;
-  border-radius: 50%;
-  animation: ball-move8234 3s ease-in-out 1s infinite alternate;
-}
-
-.ball::after {
-  position: absolute;
-  content: '';
-  top: 25px;
-  right: 5px;
-  width: 5px;
-  height: 5px;
-  background: #000;
-  border-radius: 50%;
-}
-
-.bar {
-  width: 200px;
-  height: 12.5px;
-  background: #FFDAAF;
-  border-radius: 30px;
-  transform: rotate(-15deg);
-  animation: up-down6123 3s ease-in-out 1s infinite alternate;
-}
-
-@keyframes up-down6123 {
-  from {
-    transform: rotate(-15deg);
-  }
-  to {
-    transform: rotate(15deg);
-  }
-}
-
-@keyframes ball-move8234 {
-  from {
-    left: calc(100% - 40px);
-    transform: rotate(360deg);
-  }
-  to {
-    left: calc(0% - 20px);
-    transform: rotate(0deg);
-  }
-}
-
-.loading-animation {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-}
-</style>
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="{% static 'js/customer_find.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const customersTableBody = document.getElementById('customers-body');
-    const messageContainer = document.getElementById('message-container');
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    const loadingAnimation = document.getElementById('loading-animation');
-    let currentPage = 1;
-
-    // İlk müşteri grubunu yükle
-    fetchCustomerDetails(currentPage);
-
-    // Sayfa düğmesi tıklandığında bir sonraki müşteri grubunu yükle
-    loadMoreBtn.addEventListener('click', () => {
-        currentPage++;
-        fetchCustomerDetails(currentPage);
+    // Animate each row with a delay
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll("#customers-body tr");
+        rows.forEach((row, index) => {
+            row.style.setProperty('--row-index', index);
+            row.classList.add("animate-rows");
+        });
     });
-
-    // Müşteri bilgilerini çeken fonksiyon
-    function fetchCustomerDetails(page) {
-        toggleLoading(true); // Show loading animation
-        fetch(`/api/customer-search/?page=${page}`, {
-            method: 'GET',
-        })
-        .then(response => response.json())
-        .then(data => {
-            toggleLoading(false); // Hide loading animation
-            populateCustomersTable(data.result);
-        })
-        .catch(error => {
-            toggleLoading(false); // Hide loading animation
-            showMessage('Müşteri arama sırasında hata oluştu. Lütfen tekrar deneyin.', 'alert-danger');
-            console.error('Müşteri arama sırasında hata oluştu:', error);
-        });
-    }
-
-
-    // Müşteri bilgilerini tabloya dolduran fonksiyon
-    function populateCustomersTable(customers) {
-        customers.forEach(customer => {
-            const row = document.createElement('tr');
-
-            // Müşteri Kodu hücresine yönlendirme bağlantısı ekle
-            const customerCodeCell = document.createElement('td');
-            const customerLink = document.createElement('a');
-            customerLink.href = `/homepage/?customerCode=${customer.CustomerCode}`;
-            customerLink.textContent = customer.CustomerCode;
-            customerLink.classList.add('text-decoration-none', 'text-primary');
-            customerLink.target = '_blank';
-            customerCodeCell.appendChild(customerLink);
-
-            // Diğer müşteri bilgilerini hücrelere yerleştir
-            row.appendChild(customerCodeCell);
-            row.appendChild(createCell(customer.IdentityNum));
-            row.appendChild(createCell(customer.Name));
-            row.appendChild(createCell(customer.Surname));
-            row.appendChild(createCell(customer.FatherName));
-            row.appendChild(createCell(customer.MotherName));
-
-            // Telefon numaralarını badge olarak listele
-            const phoneListCell = document.createElement('td');
-            phoneListCell.innerHTML = customer.PhoneList.map(phone =>
-                `<span class="badge bg-info text-dark me-1">${phone.trim()}</span>`
-            ).join('');
-            row.appendChild(phoneListCell);
-
-            // Satırı tabloya ekle
-            customersTableBody.appendChild(row);
-        });
-    }
-
-    // Yardımcı fonksiyon: tablo hücreleri oluşturur
-    function createCell(text) {
-        const cell = document.createElement('td');
-        cell.innerText = text;
-        return cell;
-    }
-
-    // Hata ve bilgilendirme mesajlarını gösteren fonksiyon
-    function showMessage(message, alertType) {
-        messageContainer.style.display = 'block';
-        messageContainer.className = `alert ${alertType}`;
-        messageContainer.textContent = message;
-    }
-
-    // Loading animation toggle function
-    function toggleLoading(isLoading) {
-        loadingAnimation.style.display = isLoading ? 'flex' : 'none';
-    }
-});
 </script>
 {% endblock %}

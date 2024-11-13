@@ -5,17 +5,27 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white text-center">
-            <h1>Arama Sonucu</h1>
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white text-center rounded-top">
+            <h1 class="h3 mb-0">Arama Sonucu</h1>
         </div>
-        <div class="card-body">
-            <!-- Telefon Numarası Girişi -->
+        <div class="card-body px-5">
+            <!-- Telefon Bilgisi -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="alert alert-info">
-                        <p><strong>Telefon Numarası:</strong></p>
-                        <input type="text" id="phone-number" class="form-control fw-bold" placeholder="Telefon numarasını girin">
+                    <div class="form-floating">
+                        <input type="text" id="phone" class="form-control fw-bold bg-light text-dark" value="">
+                        <label for="phone" class="form-label"><strong>Telefon Numarası</strong></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Code Input -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" id="customer-code" class="form-control" placeholder="Müşteri kodunu girin">
+                        <label for="customer-code"><strong>Müşteri Kodu</strong></label>
                     </div>
                 </div>
             </div>
@@ -23,8 +33,8 @@
             <!-- Kategori Radio Button Menüsü -->
             <div class="row mb-4">
                 <div class="col-md-12">
-                    <h5>Konu Seçiniz:</h5>
-                    <div id="category-container" class="radio-input row row-cols-1 row-cols-md-3 g-3" style="max-height: 300px; overflow-y: auto;">
+                    <h5 class="text-muted">Konu Seçiniz:</h5>
+                    <div id="category-container" class="row row-cols-1 row-cols-md-3 g-3 overflow-auto" style="max-height: 300px;">
                         <p>Yükleniyor...</p>
                     </div>
                 </div>
@@ -33,95 +43,78 @@
             <!-- Not Ekleme Alanı -->
             <div class="row mb-4">
                 <div class="col-md-12">
-                    <h5>Not Ekle:</h5>
-                    <textarea id="user-note" class="form-control" rows="4" placeholder="Notunuzu buraya yazın..."></textarea>
+                    <div class="form-floating">
+                        <textarea id="user-note" class="form-control" rows="4" placeholder="Ek açıklama girin..."></textarea>
+                        <label for="user-note"><strong>Not Ekle</strong></label>
+                    </div>
                 </div>
             </div>
 
             <!-- İşlemi Onayla ve Not Kaydet Butonları -->
             <div class="text-center">
-                <button id="save-note-btn" class="btn btn-success btn-lg px-4">
+                <button id="save-note-btn" class="btn btn-success btn-lg px-5 py-3 shadow-sm">
                     <i class="fas fa-check-circle"></i> İşlemi Onayla ve Notu Kaydet
                 </button>
-            </div>
-
-            <!-- Seçili Kategori Kodu (Gizli veya açıklama için gösterilebilir) -->
-            <div class="alert alert-secondary mt-4">
-                <p><strong>Seçili Konu Kodu:</strong> <span id="selected-category-code" class="fw-bold">Seçilmedi</span></p>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_styles %}
 <style>
-/* Custom Radio Button Style */
-.input {
-  -webkit-appearance: none;
-  display: block;
-  margin: 10px;
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  vertical-align: middle;
-  box-shadow: hsla(0, 0%, 100%, .15) 0 1px 1px, inset hsla(0, 0%, 0%, .5) 0 0 0 1px;
-  background-color: hsla(0, 0%, 0%, .2);
-  background-image: -webkit-radial-gradient(hsla(200, 100%, 90%, 1) 0%, hsla(200, 100%, 70%, 1) 15%, hsla(200, 100%, 60%, .3) 28%, hsla(200, 100%, 30%, 0) 70%);
-  background-repeat: no-repeat;
-  -webkit-transition: background-position .15s cubic-bezier(.8, 0, 1, 1), -webkit-transform .25s cubic-bezier(.8, 0, 1, 1);
-  outline: none;
-}
+    .form-floating>.form-control,
+    .form-floating>.form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
 
-.input:checked {
-  -webkit-transition: background-position .2s .15s cubic-bezier(0, 0, .2, 1), -webkit-transform .25s cubic-bezier(0, 0, .2, 1);
-}
+    #category-container .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+    }
 
-.input:active {
-  -webkit-transform: scale(1.5);
-  -webkit-transition: -webkit-transform .1s cubic-bezier(0, 0, .2, 1);
-}
+    #category-container .form-check-label {
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
 
-.input,
-.input:active {
-  background-position: 0 24px;
-}
+    #save-note-btn {
+        transition: background-color 0.3s, transform 0.3s;
+    }
 
-.input:checked {
-  background-position: 0 0;
-}
+    #save-note-btn:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+    }
 
-.input:checked ~ .input,
-.input:checked ~ .input:active {
-  background-position: 0 -24px;
-}
+    .card {
+        border-radius: 1rem;
+    }
+
+    .card-header {
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+        font-weight: 500;
+    }
 </style>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone_number');
-        const phoneNumberInput = document.getElementById('phone-number');
+        const phone = "05515565825";  // Burada telefon numarasını sabit değer olarak varsaydık
+        document.getElementById('phone').value = phone; // Sayfada göster
 
-        if (phoneNumber) {
-            phoneNumberInput.value = phoneNumber;
-            phoneNumberInput.readOnly = true;
-        }
+        fetchCategories(); // Kategorileri yükle
 
-        fetchCategories();
-
-        const categoryContainer = document.getElementById('category-container');
-        categoryContainer.addEventListener('change', function () {
-            const selectedRadio = document.querySelector('input[name="category"]:checked');
-            document.getElementById('selected-category-code').innerText = selectedRadio ? selectedRadio.value : 'Seçilmedi';
-        });
-
+        // Notu kaydet butonuna tıklandığında veriyi işle ve gönder
         document.getElementById('save-note-btn').addEventListener('click', function () {
             saveNote();
         });
     });
 
+    // Kategorileri al ve radio button olarak göster
     function fetchCategories() {
         const categoryContainer = document.getElementById('category-container');
         categoryContainer.innerHTML = '<p>Yükleniyor...</p>';
@@ -129,31 +122,33 @@
         fetch('/api/get-customer-note-categories/')
             .then(response => response.json())
             .then(data => {
-                categoryContainer.innerHTML = '';
+                categoryContainer.innerHTML = '';  // Var olan içeriği temizle
+
                 if (data.length === 0) {
                     categoryContainer.innerHTML = '<p>Hiç kategori bulunamadı</p>';
                     return;
                 }
 
                 data.forEach(item => {
+                    const radioWrapper = document.createElement('div');
+                    radioWrapper.classList.add('form-check', 'col');
+
                     const radioInput = document.createElement('input');
-                    radioInput.classList.add('input');
+                    radioInput.classList.add('form-check-input');
                     radioInput.type = 'radio';
                     radioInput.name = 'category';
                     radioInput.id = `category-${item.UserWarningCode}`;
                     radioInput.value = item.UserWarningCode;
+                    radioInput.dataset.description = item.UserWarningDescription;
 
-                    const label = document.createElement('label');
-                    label.classList.add('ms-2');
-                    label.htmlFor = `category-${item.UserWarningCode}`;
-                    label.textContent = item.UserWarningDescription;
+                    const radioLabel = document.createElement('label');
+                    radioLabel.classList.add('form-check-label');
+                    radioLabel.htmlFor = `category-${item.UserWarningCode}`;
+                    radioLabel.textContent = item.UserWarningDescription;
 
-                    const wrapper = document.createElement('div');
-                    wrapper.classList.add('d-flex', 'align-items-center');
-                    wrapper.appendChild(radioInput);
-                    wrapper.appendChild(label);
-
-                    categoryContainer.appendChild(wrapper);
+                    radioWrapper.appendChild(radioInput);
+                    radioWrapper.appendChild(radioLabel);
+                    categoryContainer.appendChild(radioWrapper);
                 });
             })
             .catch(error => {
@@ -162,13 +157,16 @@
             });
     }
 
+    // Notu kaydetme fonksiyonu
     function saveNote() {
+        const customerCode = document.getElementById('customer-code').value;
         const selectedCategory = document.querySelector('input[name="category"]:checked');
         const noteText = document.getElementById('user-note').value;
-        const phoneNumber = document.getElementById('phone-number').value;
+        const phoneNumber = document.getElementById('phone').value;
+        const username = "{{ username }}";  // Django'dan gelen kullanıcı adı
 
-        if (!phoneNumber) {
-            alert('Lütfen telefon numarasını girin!');
+        if (!customerCode) {
+            alert('Müşteri kodunu giriniz!');
             return;
         }
 
@@ -182,34 +180,42 @@
             return;
         }
 
+        // Description içeriğini oluştur
+        const description = `Görüşülen tel no: ${phoneNumber}, Kategori: ${selectedCategory.dataset.description}, Not: ${noteText}, Kullanıcı: ${username}`;
+
         const data = {
-            phone_number: phoneNumber,
-            category_code: selectedCategory.value,
-            note: noteText
+            CustomerCode: customerCode,
+            UserWarningCode: selectedCategory.value,
+            CommAddress: phoneNumber,  // Telefon numarası
+            Description: noteText,  // Kullanıcının yazdığı not
+            UserWarningDescription: selectedCategory.dataset.description,
+            username: username
         };
 
-        fetch('/api/save-note/', {
+        // Notu kaydetmek için API isteği gönder
+        fetch('/api/add_customer_note', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': getCookie('csrftoken')  // CSRF koruması
             },
             body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(result => {
-            if (result.success) {
-                alert('Not başarıyla kaydedildi!');
-                document.getElementById('user-note').value = '';
+            if (result.procedure_info) {
+                console.log('Gönderilen Veriler:', result.procedure_info);
+                alert('Veriler başarıyla gönderildi. Detaylar konsolda.');
             } else {
-                alert('Not kaydedilirken bir hata oluştu.');
+                alert('Veri gönderilirken bir hata oluştu.');
             }
         })
         .catch(error => {
-            console.error('Not kaydedilirken bir hata oluştu:', error);
+            console.error('Veri gönderilirken bir hata oluştu:', error);
         });
     }
 
+    // CSRF token'ı almak için yardımcı fonksiyon
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

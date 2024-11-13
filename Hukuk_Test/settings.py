@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,6 +29,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
+
+DEFAULT_AUTH_KEY = os.getenv("AUTHORIZATION_KEY", "varsayılan_auth_key")  # Yedek bir anahtar değeri koyun
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,7 +78,37 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'your_project.asgi.application'
+
 WSGI_APPLICATION = 'Hukuk_Test.wsgi.application'
+
+# Cache ayarları
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
+
+# Session ayarları
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = "default"
+SESSION_COOKIE_AGE = 3600  # 1 saat
 
 
 # Database

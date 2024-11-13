@@ -1,86 +1,81 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
-    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sayfa Başlığı{% endblock %}</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/user_panel.css' %}">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+
+    <!-- External CSS and Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="bar">
-            <div class="ball"></div>
+    <div id="loading-overlay" class="loading-overlay d-none">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="/homepage/">
+                <img src="{% static 'images/logo_app.png' %}" alt="Logo" class="img-fluid">
+            </a>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link text-light" href="/user-panel/">{{ username }}</a>
-                    <li class="nav-item ms-3">
-                        <a class="nav-link text-light" href="/user-panel/">{{username}}</a>
+                        <a class="nav-link" href="/user-panel/">
+                            <i class="fas fa-user me-2"></i>{{ username }}
+                        </a>
                     </li>
                 </ul>
-
-                <!-- Sadece anasayfa için input alanı -->
-                {% block navbar_extra %}
-                {% endblock %}
+                {% block navbar_extra %}{% endblock %}
             </div>
         </div>
     </nav>
 
-    <!-- Sidebar -->
+    <!-- Main Layout -->
     <div class="d-flex">
-        <div class="sidebar bg-secondary bg-dark p-3 text-white" style="width: 170px;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="/homepage/">Ana Sayfa</a>
+                    <a class="nav-link {% if request.path == '/homepage/' %}active{% endif %}" href="/homepage/">
+                        <i class="fas fa-home"></i> Home
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="/customer_find/">Müşteri Listem</a>
+                    <a class="nav-link {% if request.path == '/customer_find/' %}active{% endif %}" href="/customer_find/">
+                        <i class="fas fa-users"></i> Customer List
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="/call_result/">Arama Sonuç</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="{% url 'logout' %}">Çıkış Yap</a>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 </li>
             </ul>
-        </div>
+        </aside>
 
         <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-4">
-            {% block content %}
-            {% endblock %}
-        </div>
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Firebase v8 JS SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-
-
-    <!-- Firebase dinleyici scriptini ekliyoruz -->
-    <script>
-        // Template'den gelen username'i global JavaScript değişkenine aktarıyoruz
-        const username = "{{ username }}";
-    </script>
+    <!-- External JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/call_listener.js' %}"></script>
 
-    {% block extra_scripts %}
-    {% endblock %}
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

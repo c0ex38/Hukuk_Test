@@ -72,32 +72,43 @@
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <!-- Tab Navigation with Icons and Enhanced Styling -->
+    <ul class="nav nav-tabs custom-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="installments-tab" data-bs-toggle="tab" data-bs-target="#installments" type="button" role="tab" aria-controls="installments" aria-selected="true">Taksitler</button>
+            <button class="nav-link active" id="installments-tab" data-bs-toggle="tab" data-bs-target="#installments" type="button" role="tab" aria-controls="installments" aria-selected="true">
+                <i class="fas fa-calendar-alt me-2"></i>Taksitler
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">Notlar</button>
+            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">
+                <i class="fas fa-sticky-note me-2"></i>Notlar
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab" aria-controls="messages" aria-selected="false">Mesajlar</button>
+            <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab" aria-controls="messages" aria-selected="false">
+                <i class="fas fa-envelope me-2"></i>Mesajlar
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button" role="tab" aria-controls="attributes" aria-selected="false">Özellikler</button>
+            <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button" role="tab" aria-controls="attributes" aria-selected="false">
+                <i class="fas fa-tags me-2"></i>Özellikler
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab" aria-controls="addresses" aria-selected="false">Adresler</button>
+            <button class="nav-link" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab" aria-controls="addresses" aria-selected="false">
+                <i class="fas fa-map-marker-alt me-2"></i>Adresler
+            </button>
         </li>
     </ul>
-    
-    <!-- Tab Content -->
-    <div class="tab-content mt-3" id="myTabContent">
+
+    <!-- Tab Content with Enhanced Styling -->
+    <div class="tab-content mt-4 p-3 rounded shadow-lg bg-light" id="myTabContent">
+
         <!-- Taksitler Tab -->
         <div class="tab-pane fade show active" id="installments" role="tabpanel" aria-labelledby="installments-tab">
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover" id="installmentsTable">
+                    <thead class="table-dark">
                         <tr>
                             <th>Tarih</th>
                             <th>Ödeme Türü</th>
@@ -110,11 +121,12 @@
                 </table>
             </div>
         </div>
+
         <!-- Notlar Tab -->
         <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover" id="notesTable">
+                    <thead class="table-dark">
                         <tr>
                             <th>Tarih</th>
                             <th>Uyarı Türü</th>
@@ -132,8 +144,8 @@
         <!-- Mesajlar Tab -->
         <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover" id="messagesTable">
+                    <thead class="table-dark">
                         <tr>
                             <th>Telefon Numarası</th>
                             <th>Tarih</th>
@@ -149,17 +161,14 @@
 
         <!-- Özellikler Tab -->
         <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
-            <div class="d-flex justify-content-between mb-3">
-                <h4>Özellikler</h4>
-                <!-- Özellik Ekle Butonu -->
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttributeModal">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addAttributeModal">
                     <i class="fas fa-plus-circle"></i> Özellik Ekle
                 </button>
             </div>
-
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover">
+                    <thead class="table-dark">
                         <tr>
                             <th>Özellik Türü</th>
                             <th>Açıklama</th>
@@ -175,8 +184,8 @@
         <!-- Adresler Tab -->
         <div class="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover" id="addressesTable">
+                    <thead class="table-dark">
                         <tr>
                             <th>Adres Türü</th>
                             <th>Adres</th>
@@ -279,13 +288,389 @@
             </div>
         </div>
     </div>
+    
+    <!-- Toast Notification (Uyarı Mesajı) -->
+    <div id="toast-notification" class="toast align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-3" style="display: none; z-index: 1050;">
+        <div class="d-flex">
+            <div class="toast-body">
+                Arama başlatıldı!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Kapat" onclick="closeToast()"></button>
+        </div>
+    </div>
 
+    <!-- Modal Trigger -->
+    <button type="button" class="btn btn-primary d-none" id="trigger-modal" data-bs-toggle="modal" data-bs-target="#searchModal">Aç</button>
 
+    <!-- Ana Sayfa Modal Yapısı -->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="card shadow-lg border-0 rounded-3">
+                    <div class="card-header bg-primary text-white text-center rounded-top">
+                        <h1 class="h3 mb-0">Arama Sonucu</h1>
+                    </div>
+                    <div class="card-body px-5">
+                        <!-- Telefon Bilgisi -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" id="phone" class="form-control fw-bold bg-light text-dark" value="">
+                                    <label for="phone" class="form-label"><strong>Telefon Numarası</strong></label>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Customer Code Input -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" id="customer-code" class="form-control" placeholder="Müşteri kodunu girin">
+                                    <label for="customer-code"><strong>Müşteri Kodu</strong></label>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Kategori Radio Button Menüsü -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5 class="text-muted">Konu Seçiniz:</h5>
+                                <div id="category-container" class="row row-cols-1 row-cols-md-3 g-3 overflow-auto" style="max-height: 300px;">
+                                    <p>Yükleniyor...</p>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Not Ekleme Alanı -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <textarea id="user-note" class="form-control" rows="4" placeholder="Ek açıklama girin..."></textarea>
+                                    <label for="user-note"><strong>Not Ekle</strong></label>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- İşlemi Onayla ve Not Kaydet Butonları -->
+                        <div class="text-center">
+                            <button id="save-note-btn" class="btn btn-success btn-lg px-5 py-3 shadow-sm">
+                                <i class="fas fa-check-circle"></i> İşlemi Onayla ve Notu Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Optional Custom CSS for Styling -->
+    <style>
+        /* General Settings */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f8;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Navbar Search */
+        .form-control {
+            border-radius: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            border-color: #3b82f6;
+        }
+
+        .btn-outline-success {
+            color: #2563eb;
+            border-color: #2563eb;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .btn-outline-success:hover {
+            background-color: #2563eb;
+            color: #fff;
+            box-shadow: 0 5px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Card Styling */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            font-weight: 600;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
+            border-radius: 15px 15px 0 0;
+        }
+
+        /* Table Headings */
+        .table-dark {
+            background-color: #1f2937;
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Custom Tabs Styling */
+        .custom-tabs .nav-link {
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            transition: color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .custom-tabs .nav-link i {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .custom-tabs .nav-link.active {
+            color: #ffffff;
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            box-shadow: 0px 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .custom-tabs .nav-link:hover {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .tab-content:hover {
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Buttons */
+        .btn-primary, .btn-outline-primary {
+            border-radius: 12px;
+            font-weight: 500;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-primary:hover, .btn-outline-primary:hover {
+            box-shadow: 0px 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Modals */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-content:hover {
+            transform: scale(1.02);
+        }
+
+        .modal-header {
+            background-color: #1f2937;
+            color: #ffffff;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        /* Toast Notification */
+        .toast {
+            background-color: #1f2937;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.5s ease;
+        }
+
+        .toast-body {
+            font-size: 1rem;
+        }
+
+        .toast .btn-close {
+            filter: brightness(80%);
+        }
+
+        /* Improved Spacing */
+        .card-body p, .modal-body p, .table th, .table td {
+            margin-bottom: 10px;
+        }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .custom-tabs .nav-link {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+    </style>
+    
 {% endblock %}
 
 {% block extra_scripts %}
     <script src="{% static 'js/homepage.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="{% static 'js/homepage.js' %}"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const phone = "05515565825";
+            document.getElementById('phone').value = phone;
+            fetchCategories();
+    
+            // Notu kaydet butonuna tıklandığında veriyi işle ve gönder
+            document.getElementById('save-note-btn').addEventListener('click', function () {
+                saveNote();
+            });
+    
+            // Firebase ile veri dinleyici
+            const firebaseConfig = {
+                apiKey: "API_KEY",
+                authDomain: "PROJECT_ID.firebaseapp.com",
+                databaseURL: "https://PROJECT_ID.firebaseio.com",
+                projectId: "PROJECT_ID",
+                storageBucket: "PROJECT_ID.appspot.com",
+                messagingSenderId: "SENDER_ID",
+                appId: "APP_ID"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+    
+            database.ref('path/to/your/data').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('customer-code').value = data.customerCode || '';
+                    
+                    // Modalı aç
+                    $('#searchModal').modal('show');
+                }
+            });
+        });
+    
+        function fetchCategories() {
+            const categoryContainer = document.getElementById('category-container');
+            categoryContainer.innerHTML = '<p>Yükleniyor...</p>';
+    
+            fetch('/api/get-customer-note-categories/')
+                .then(response => response.json())
+                .then(data => {
+                    categoryContainer.innerHTML = '';
+                    if (data.length === 0) {
+                        categoryContainer.innerHTML = '<p>Hiç kategori bulunamadı</p>';
+                        return;
+                    }
+                    data.forEach(item => {
+                        const radioWrapper = document.createElement('div');
+                        radioWrapper.classList.add('form-check', 'col');
+                        const radioInput = document.createElement('input');
+                        radioInput.classList.add('form-check-input');
+                        radioInput.type = 'radio';
+                        radioInput.name = 'category';
+                        radioInput.id = `category-${item.UserWarningCode}`;
+                        radioInput.value = item.UserWarningCode;
+                        radioInput.dataset.description = item.UserWarningDescription;
+    
+                        const radioLabel = document.createElement('label');
+                        radioLabel.classList.add('form-check-label');
+                        radioLabel.htmlFor = `category-${item.UserWarningCode}`;
+                        radioLabel.textContent = item.UserWarningDescription;
+    
+                        radioWrapper.appendChild(radioInput);
+                        radioWrapper.appendChild(radioLabel);
+                        categoryContainer.appendChild(radioWrapper);
+                    });
+                })
+                .catch(error => {
+                    console.error('Kategori yüklenirken hata oluştu:', error);
+                    categoryContainer.innerHTML = '<p>Veri Yüklenemedi</p>';
+                });
+        }
+    
+        function saveNote() {
+            const customerCode = document.getElementById('customer-code').value;
+            const selectedCategory = document.querySelector('input[name="category"]:checked');
+            const noteText = document.getElementById('user-note').value;
+            const phoneNumber = document.getElementById('phone').value;
+            const username = "{{ username }}";
+    
+            if (!customerCode || !selectedCategory || !noteText.trim()) {
+                alert('Lütfen tüm alanları doldurunuz!');
+                return;
+            }
+    
+            const data = {
+                CustomerCode: customerCode,
+                UserWarningCode: selectedCategory.value,
+                CommAddress: phoneNumber,
+                Description: noteText,
+                UserWarningDescription: selectedCategory.dataset.description,
+                username: username
+            };
+    
+            fetch('/api/add_customer_note', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.procedure_info) {
+                    alert('Veriler başarıyla gönderildi.');
+                } else {
+                    alert('Veri gönderilirken bir hata oluştu.');
+                }
+            })
+            .catch(error => {
+                console.error('Veri gönderilirken bir hata oluştu:', error);
+            });
+        }
+    
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+
 {% endblock %}

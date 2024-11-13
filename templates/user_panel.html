@@ -1,7 +1,12 @@
 <!-- templates/user_panel.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Kullanıcı Paneli{% endblock %}
+
+{% block extra_styles %}
+    <link rel="stylesheet" href="{% static 'css/user_panel.css' %}">
+{% endblock %}
 
 {% block content %}
     <div id="panel">
@@ -13,9 +18,9 @@
         {% else %}
             <p>Standart kullanıcı olarak giriş yaptınız.</p>
         {% endif %}
-
-        <div id="component-area">
-            <!-- Dinamik bileşenler burada yüklenecek -->
-        </div>
     </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="{% static 'js/user_panel.js' %}"></script>
 {% endblock %}

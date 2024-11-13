@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
 
     let customersData = [];   // Tüm müşteri verileri
     let filteredData = [];    // Filtrelenmiş müşteri verileri
@@ -15,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Müşteri bilgilerini çeken fonksiyon
     function fetchCustomerDetails() {
+        loadingOverlay.style.display = 'flex'; // Show loading overlay
+
         fetch('/api/customer-search/', { method: 'GET' })
             .then(response => response.json())
             .then(data => {
@@ -27,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 messageContainer.style.display = 'block';
                 messageContainer.textContent = 'Müşteri arama sırasında hata oluştu. Lütfen tekrar deneyin.';
                 console.error('Müşteri arama sırasında hata oluştu:', error);
+            })
+            .finally(() => {
+                loadingOverlay.style.display = 'none'; // Hide loading overlay
             });
     }
 

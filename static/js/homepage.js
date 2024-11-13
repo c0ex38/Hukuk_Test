@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadingOverlay = document.getElementById('loading-overlay');
 
     const customerCodeInput = searchInput.value; // CustomerCode
-    const username = "{{ username }}"; // Kullanıcı adı
 
     // Modal form referansları
     const addPhoneForm = document.getElementById('addPhoneForm');
@@ -21,7 +20,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const phonesTable = document.getElementById('phones-table');
     const phonesBody = document.getElementById('phones-body');
     const addPhoneBtn = document.getElementById('addPhoneBtn');
+    const customerCode = getQueryParam('customerCode');
 
+    // Helper function to get URL parameters
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Check if customerCode is present in URL
+    if (customerCode) {
+        searchInput.value = customerCode; // Set customerCode in search input
+        fetchCustomerDetails(customerCode); // Trigger search function directly with customerCode
+    }
 
     // Enter tuşuna basıldığında veya butona tıklanıldığında API çağrısı yap
     searchInput.addEventListener('keydown', function (e) {
@@ -49,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         addPhoneBtn.disabled = true;
 
         // API request
-        fetch(`/api/fetch-customer-details/${customerCode}/`)
+        fetch(`/api/customer-detail/${customerCode}/`)
             .then(response => response.json())
             .then(data => {
                 // Yükleniyor animasyonunu gizle
@@ -76,7 +87,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     customerLoading.innerText = 'Müşteri bilgileri bulunamadı.';
                 }
 
-                // Telefon bilgilerini doldur
+                // Uyarı mesajını gösteren fonksiyon
+                function showToast(message) {
+                    const toastNotification = document.getElementById('toast-notification');
+                    toastNotification.querySelector('.toast-body').innerText = message;
+                    toastNotification.style.display = 'block';
+
+                    // 3 saniye sonra uyarıyı otomatik gizle
+                    setTimeout(() => {
+                        toastNotification.style.display = 'none';
+                    }, 3000);
+                }
+
+                // Firebase'e telefon numarasını gönderen fonksiyon
+                function sendPhoneToFirebase(phoneNumber) {
+                    // Dinamik olarak username değişkenini kullanarak Firebase yolunu ayarla
+                    const userPath = `users/${username}/call/phone_number`;
+
+                    firebase.database().ref(userPath).set(phoneNumber)
+                        .then(() => {
+                            console.log('Telefon numarası Firebase\'e gönderildi:', phoneNumber);
+                            showToast('Arama başlatıldı!');
+                        })
+                        .catch(error => {
+                            console.error('Telefon numarasını Firebase\'e gönderirken hata oluştu:', error);
+                            showToast('Arama başlatılamadı. Tekrar deneyin.');
+                        });
+                }
+
+                // Phone information area
                 if (data.customer_phones) {
                     phonesLoading.style.display = 'none';
                     phonesTable.style.display = 'table';
@@ -89,6 +128,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         typeCell.innerText = phone.CommunicationTypeDescription;
                         phoneCell.innerText = phone.Phone;
+
+                        // Clickable sınıfını ekle
+                        phoneCell.classList.add('clickable-phone');
+
+                        // Add click event to send phone number to Firebase
+                        phoneCell.addEventListener('click', function () {
+                            sendPhoneToFirebase(phone.Phone);
+                        });
 
                         row.appendChild(typeCell);
                         row.appendChild(phoneCell);
@@ -268,8 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
             "CommAddress": phone,
             "username": username
         };
+        console.log("Gönderilecek Veri:", postData);
 
-        // API'ye POST isteği yap
+        // Gönderim işlemini test etmek istemediğimiz için fetch fonksiyonunu yorum satırına alıyoruz.
         fetch('/api/add-customer-communication/', {
             method: 'POST',
             headers: {
@@ -288,8 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('Telefon bilgisi eklenirken bir hata oluştu.');
                 } else {
                     alert('Telefon bilgisi başarıyla eklendi!');
-                    // Başarılı olursa telefon bilgilerini tekrar yükle
-                    fetchCustomerDetails(searchInput.value);
 
                     // Modalı kapat
                     const addPhoneModal = new bootstrap.Modal(document.getElementById('addPhoneModal'));
@@ -304,7 +350,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Hata:', error);
                 alert('API isteği sırasında bir hata oluştu.');
             });
+        // Loading overlay'i gizle, çünkü gönderim işlemi yapılmadı
+        loadingOverlay.style.display = 'none';
     });
+
+
 
     // CSRF token'ı almak için yardımcı fonksiyon
     function getCookie(name) {
@@ -442,23 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => {
         console.error('API isteği sırasında bir hata oluştu:', error);
         alert('API isteği sırasında bir hata oluştu.');
-    });
-    });
-
-        // CSRF token almak için yardımcı fonksiyon
-        function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-            }
-        }
-    }
-        return cookieValue;
-    }
+            });
+        });
     });
 });

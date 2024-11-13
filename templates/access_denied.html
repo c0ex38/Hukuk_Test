@@ -4,100 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Erişim Yok</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #ff5f6d;
+            --secondary-color: #ffc371;
+            --text-primary: #333;
+            --text-secondary: #666;
+        }
+
         body {
-            background: linear-gradient(135deg, #ff7e5f, #feb47b);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: grid;
+            place-items: center;
+            color: var(--text-primary);
             overflow: hidden;
         }
+
         .access-denied-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.3);
-            padding: 60px 50px;
-            max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            padding: 3rem;
+            width: min(90%, 500px);
             text-align: center;
-            animation: fadeIn 0.6s ease-in-out;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
+
         .access-denied-icon {
-            font-size: 70px;
-            color: #dc3545;
-            margin-bottom: 20px;
-            animation: shake 0.7s ease-in-out infinite;
+            font-size: 4.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
         }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
+
         .access-denied-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .access-denied-message {
-            font-size: 16px;
-            color: #666;
-            margin: 15px 0 30px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
             line-height: 1.6;
         }
+
         .btn-custom {
-            width: 45%;
-            margin: 10px;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-radius: 8px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border-radius: 12px;
             text-transform: uppercase;
-            transition: transform 0.3s, background 0.3s ease, color 0.3s ease;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+            width: auto;
+            min-width: 200px;
         }
+
+        .btn-custom::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .btn-custom:hover::after {
+            transform: translateX(100%);
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
         .btn-primary {
-            background-color: #ff5f6d;
+            background: linear-gradient(45deg, var(--primary-color), #ff8e9d);
             border: none;
-            color: #fff;
         }
+
         .btn-primary:hover {
-            background-color: #ff3b4d;
-            transform: translateY(-3px);
+            background: linear-gradient(45deg, #ff4555, #ff7a8c);
         }
-        .btn-secondary {
-            background-color: #ffc371;
-            color: #333;
-            border: none;
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .btn-secondary:hover {
-            background-color: #ffb94d;
-            color: white;
-            transform: translateY(-3px);
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 576px) {
+            .access-denied-container {
+                padding: 2rem;
+                width: 95%;
+            }
+
+            .access-denied-title {
+                font-size: 1.5rem;
+            }
+
+            .access-denied-message {
+                font-size: 1rem;
+            }
+
+            .btn-custom {
+                width: 100%;
+                padding: 0.8rem 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="access-denied-container">
-        <i class="fas fa-exclamation-triangle access-denied-icon"></i>
+        <i class="fas fa-lock access-denied-icon"></i>
         <h1 class="access-denied-title">Erişim Yetkiniz Yok</h1>
-        <p class="access-denied-message">Bu sayfaya erişim izniniz bulunmamaktadır. Lütfen giriş yapın veya ana sayfaya dönün.</p>
-
-        <div>
-            <a href="https://talipsan.com.tr/" class="btn btn-primary btn-custom">Giriş Yap</a>
-        </div>
+        <p class="access-denied-message">
+            Bu sayfaya erişim izniniz bulunmamaktadır. Lütfen giriş yapın.
+        </p>
+        <a href="https://talipsan.com.tr/" class="btn btn-primary btn-custom">
+            <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+        </a>
     </div>
 
-    <!-- Font Awesome ve Bootstrap -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
