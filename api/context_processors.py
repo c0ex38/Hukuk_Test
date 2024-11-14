@@ -1,5 +1,5 @@
-def user_info(request):
+def add_user_info(request):
     return {
         'username': request.session.get('username'),
-        'is_admin': request.session.get('is_admin', False),
+        'is_admin': request.session.get('is_admin', False)
     }

@@ -1,47 +1,69 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js";
+import { getDatabase, ref, onChildAdded, remove } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js";
+
+// Firebase yapılandırması
+const firebaseConfig = {
+    apiKey: "API_KEY",
+    authDomain: "hukuk-9a8a0.firebaseapp.com",
+    databaseURL: "https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "hukuk-9a8a0",
+    storageBucket: "hukuk-9a8a0.appspot.com",
+    messagingSenderId: "972531735321",
+    appId: "1:972531735321:web:17e969ac94388ea8d50388"
+};
+
+// Firebase uygulamasını başlat
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
 document.addEventListener('DOMContentLoaded', function () {
-    const firebaseConfig = {
-        apiKey: "AIzaSyARCS5Vm2DfKtZmgJxYf8ZNWhRlqPX6Qck",
-        authDomain: "hukuk-9a8a0.firebaseapp.com",
-        databaseURL: "https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "hukuk-9a8a0",
-        storageBucket: "hukuk-9a8a0.appspot.com",
-        messagingSenderId: "972531735321",
-        appId: "1:972531735321:web:17e969ac94388ea8d50388"
-    };
+    const categoryContainer = document.getElementById('category-container');
+    const dateInputContainer = document.getElementById('date-input-container');
+    const extraDateInput = document.getElementById('extra-date');
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    if (typeof currentUsername !== 'undefined' && currentUsername) {
+        const userCallHistoryRef = ref(database, `users/${currentUsername}/call_history`);
 
-    if (username) {
-        const userCallHistoryRef = database.ref(`users/${username}/call_history`);
-
-        userCallHistoryRef.on('child_added', (snapshot) => {
+        onChildAdded(userCallHistoryRef, (snapshot) => {
             const data = snapshot.val();
 
             if (data && data.phone_number) {
-                const phoneNumber = data.phone_number;
-                console.log(`Yeni telefon numarası: ${phoneNumber}`);
+                const phoneNumberInput = document.getElementById('phone_number');
+                phoneNumberInput ? (phoneNumberInput.value = data.phone_number) : console.error("Telefon numarası alanı bulunamadı.");
 
-                // Telefon numarasını modalın telefon alanına yerleştir
-                document.getElementById('phone').value = phoneNumber;
-
-                // Kategori seçeneklerini dinamik olarak yükle
-                fetchCategories();
-
-                // Kullanıcı not alanını temizle
+                get_Note_Categories();
                 document.getElementById('user-note').value = "";
 
-                // Modalı göster
                 $('#searchModal').modal('show');
 
-                // Modal açıldıktan sonra Firebase'deki call_history düğümünü sil
-                snapshot.ref.remove()
-                    .then(() => {
-                        console.log('Phone number verisi başarıyla silindi.');
-                    })
-                    .catch((error) => {
-                        console.error('Veri silinirken hata oluştu:', error);
+                document.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        remove(snapshot.ref)
+                            .then(() => {
+                                console.log('call_history girdisi başarıyla silindi.');
+                                $('#searchModal').modal('hide');
+                            })
+                            .catch((error) => console.error('call_history girdisi silinirken hata oluştu:', error));
                     });
+                });
+            }
+        });
+
+        // Belirli UserWarningCode'lar için tarih alanı göstermek
+        const codesWithDate = ['107', '109'];
+
+        // Radyo buton değişikliğinde tarih alanını göster
+        categoryContainer.addEventListener('change', function (event) {
+            if (event.target.name === 'category') {
+                const selectedCode = event.target.value;
+                if (codesWithDate.includes(selectedCode)) {
+                    dateInputContainer.classList.remove('d-none');
+                    extraDateInput.required = true;
+                } else {
+                    dateInputContainer.classList.add('d-none');
+                    extraDateInput.required = false;
+                    extraDateInput.value = '';
+                }
             }
         });
     } else {
@@ -49,21 +71,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-function fetchCategories() {
+// Kategorileri getirme fonksiyonu
+function get_Note_Categories() {
     const categoryContainer = document.getElementById('category-container');
     categoryContainer.innerHTML = '<p>Yükleniyor...</p>';
 
     fetch('/api/get-customer-note-categories/')
         .then(response => response.json())
         .then(data => {
-            categoryContainer.innerHTML = '';  // Var olan içeriği temizle
+            categoryContainer.innerHTML = '';
 
             if (data.length === 0) {
                 categoryContainer.innerHTML = '<p>Hiç kategori bulunamadı</p>';
                 return;
             }
 
-            data.forEach(item => {
+            const allowedCodes = ['006', '009', '107', '109', '110', '111', '112', '114', '116', '119', '125', '128', '132', '141', '139'];
+            const filteredData = data.filter(item => allowedCodes.includes(item.UserWarningCode));
+
+            if (filteredData.length === 0) {
+                categoryContainer.innerHTML = '<p>Filtrelenen kategoriler bulunamadı</p>';
+                return;
+            }
+
+            filteredData.forEach(({ UserWarningCode, UserWarningDescription }) => {
                 const radioWrapper = document.createElement('div');
                 radioWrapper.classList.add('form-check', 'col');
 
@@ -71,14 +102,14 @@ function fetchCategories() {
                 radioInput.classList.add('form-check-input');
                 radioInput.type = 'radio';
                 radioInput.name = 'category';
-                radioInput.id = `category-${item.UserWarningCode}`;
-                radioInput.value = item.UserWarningCode;
-                radioInput.dataset.description = item.UserWarningDescription;
+                radioInput.id = `category-${UserWarningCode}`;
+                radioInput.value = UserWarningCode;
+                radioInput.dataset.description = UserWarningDescription;
 
                 const radioLabel = document.createElement('label');
                 radioLabel.classList.add('form-check-label');
-                radioLabel.htmlFor = `category-${item.UserWarningCode}`;
-                radioLabel.textContent = item.UserWarningDescription;
+                radioLabel.htmlFor = `category-${UserWarningCode}`;
+                radioLabel.textContent = UserWarningDescription;
 
                 radioWrapper.appendChild(radioInput);
                 radioWrapper.appendChild(radioLabel);

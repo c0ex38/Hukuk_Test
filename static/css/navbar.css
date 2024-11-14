@@ -1,0 +1,28 @@
+/* Navbar Sabitleme */
+.navbar {
+    height: 60px;
+    background-color: #0056b3;
+    z-index: 1000;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Navbar Linkleri */
+.navbar-dark .navbar-nav .nav-link {
+    color: #e6e6e6;
+    font-weight: 500;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #ffffff;
+    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.7);
+}
+
+/* Arama Çubuğu ve Buton Stili */
+.search-input {
+    border-radius: 20px;
+    background-color: #f1f1f1;
+}
+
+.search-btn {
+    border-radius: 20px;
+}

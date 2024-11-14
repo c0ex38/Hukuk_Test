@@ -1,0 +1,50 @@
+/* Sidebar Sabitleme ve Düzenleme */
+.sidebar {
+    width: 250px;
+    height: calc(100vh - 60px); /* Navbar yüksekliğine göre ayarlandı */
+    position: fixed;
+    top: 60px; /* Navbar'ın hemen altında */
+    left: 0;
+    background-color: #343a40;
+    padding-top: 20px;
+    box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar Linkleri */
+.sidebar a {
+    color: #cfd8dc;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Sidebar Hover Efekti */
+.sidebar a:hover {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+/* Aktif Link */
+.sidebar a.active {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+/* İçerik Alanı */
+.content {
+    margin-left: 250px;
+    padding-top: 80px; /* Navbar yüksekliği için alan bırakıldı */
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: 0;
+    }
+    .content {
+        margin-left: 0;
+        padding-top: 80px;
+    }
+}

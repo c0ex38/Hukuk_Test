@@ -62,8 +62,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # Geçici olarak tüm kaynaklardan gelen istekler
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,24 +70,23 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'api.context_processors.user_info',
-
+                'api.context_processors.add_user_info',
             ],
         },
     },
 ]
 
-ASGI_APPLICATION = 'your_project.asgi.application'
 
-WSGI_APPLICATION = 'Hukuk_Test.wsgi.application'
+ASGI_APPLICATION = 'Hukuk_Test.asgi.application'
 
 # Cache ayarları
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
     }
 }
+
+WSGI_APPLICATION = 'Hukuk_Test.wsgi.application'
 
 LOGGING = {
     'version': 1,

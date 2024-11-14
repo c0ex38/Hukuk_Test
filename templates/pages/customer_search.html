@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Müşteri Listesi{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Başlık ve Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col">
+                    <h2 class="mb-0">Müşteri Listesi</h2>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-primary" id="total-customers">0 Müşteri</span>
+                </div>
+            </div>
+
+            <!-- Filtreler -->
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="filter-customerCode" placeholder="Müşteri Kodu">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="filter-identityNum" placeholder="TC Kimlik No">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="filter-name" placeholder="Ad">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="filter-surname" placeholder="Soyad">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="filter-phone" placeholder="Telefon">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" id="clear-filters">
+                        <i class="fas fa-sync-alt me-2"></i>Filtreleri Temizle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Müşteri Tablosu -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover" id="customers-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="CustomerCode">Müşteri Kodu</th>
+                            <th class="sortable" data-sort="IdentityNum">TC Kimlik No</th>
+                            <th class="sortable" data-sort="Name">Ad</th>
+                            <th class="sortable" data-sort="Surname">Soyad</th>
+                            <th class="sortable" data-sort="FatherName">Baba Adı</th>
+                            <th class="sortable" data-sort="MotherName">Anne Adı</th>
+                            <th>Telefon Numaraları</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-list">
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müşteri Detay Modalı -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Müşteri Detayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Detay içeriği dinamik olarak doldurulacak -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/customer_search.js' %}"></script>
+{% endblock %}

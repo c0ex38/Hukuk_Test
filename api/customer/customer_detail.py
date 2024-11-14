@@ -1,7 +1,7 @@
 import asyncio
 from django.http import JsonResponse
 from ..auth.session_manager import SessionManager
-from .base import get_aiohttp_session, get_cached_data, set_cached_data
+from .base import get_aiohttp_session, get_cached_data, set_cached_data, close_aiohttp_session
 
 
 class CustomerDetailService:
@@ -31,16 +31,21 @@ class CustomerDetailService:
             "Parameters": [{"Name": "Customercode", "Value": customer_code}]
         }
         url = f"{cls.BASE_URL}/(S({session_id}))/IntegratorService/RunProc"
-        session = await get_aiohttp_session()
-        async with session.post(url, json=procedure_info, timeout=30) as response:
-            if response.status == 200:
-                data = await response.json()
-                await set_cached_data(cache_key, data, cls.CACHE_TIMEOUT)
-                return data
-        return None
+
+        try:
+            session = await get_aiohttp_session()
+            async with session.post(url, json=procedure_info, timeout=30) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    await set_cached_data(cache_key, data, cls.CACHE_TIMEOUT)
+                    return data
+                return None
+        except Exception as e:
+            print(f"Error in run_procedure: {str(e)}")
+            return None
 
 
-async def customer_detail(request, customer_code: str):
+async def _execute_customer_detail(request, customer_code: str):
     session_id = await SessionManager.get_session_id_from_api(SessionManager.DEFAULT_CREDENTIALS)
     if not session_id:
         return JsonResponse({"error": "Session ID alınamadı"}, status=500)
@@ -49,6 +54,27 @@ async def customer_detail(request, customer_code: str):
         CustomerDetailService.run_procedure(session_id, proc_name, customer_code)
         for proc_name in CustomerDetailService.PROCEDURES.values()
     ]
-    results = await asyncio.gather(*tasks)
-    data = {name: result for name, result in zip(CustomerDetailService.PROCEDURES.keys(), results)}
-    return JsonResponse(data)
+
+    try:
+        results = await asyncio.gather(*tasks)
+        data = {name: result for name, result in zip(CustomerDetailService.PROCEDURES.keys(), results)}
+        return JsonResponse(data)
+    except Exception as e:
+        print(f"Error in customer_detail: {str(e)}")
+        return JsonResponse({"error": str(e)}, status=500)
+    finally:
+        await close_aiohttp_session()
+
+
+async def customer_detail(request, customer_code: str):
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    try:
+        return await _execute_customer_detail(request, customer_code)
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return JsonResponse({"error": "Beklenmeyen bir hata oluştu"}, status=500)

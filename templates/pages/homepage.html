@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Müşteri Bilgileri{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link href="{% static 'css/homepage.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Başlık ve Özet Bilgiler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h1 class="display-4 mb-0">
+                                <span id="customer-name">---</span>
+                                <span id="customer-surname">---</span>
+                            </h1>
+                            <p class="lead mb-0" id="customer-identity">---</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="row">
+                                <div class="col-6">
+                                    <h5>Kredi Limiti</h5>
+                                    <h3 id="credit-limit">---</h3>
+                                </div>
+                                <div class="col-6">
+                                    <h5>Kalan Limit</h5>
+                                    <h3 id="remaining-limit">---</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Temel Bilgiler Kartı -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-circle text-primary me-2"></i>Temel Bilgiler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Baba Adı</label>
+                            <span id="customer-father">---</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Anne Adı</label>
+                            <span id="customer-mother">---</span>
+                        </div>
+                        <div class="info-item">
+                            <label>İş</label>
+                            <span id="customer-job">---</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Hesap Açılış</label>
+                            <span id="account-opening-date">---</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Durum</label>
+                            <span id="account-status" class="badge bg-success">---</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telefon Numaraları Kartı -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-phone text-success me-2"></i>İletişim Bilgileri
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" id="phone-filter"
+                                   placeholder="Telefon ara...">
+                            <select class="form-select form-select-sm" id="phone-type-filter">
+                                <option value="">Tüm Tipler</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="phones-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="type">
+                                        Tip <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="phone">
+                                        Numara <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="phones-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taksit Bilgileri Kartı -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-money-bill-wave text-warning me-2"></i>Taksit Bilgileri
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="installment-type-filter">
+                                <option value="">Tüm Ödemeler</option>
+                                <option value="gecikmiş">Gecikmiş Ödemeler</option>
+                                <option value="normal">Normal Ödemeler</option>
+                            </select>
+                            <input type="month" class="form-control form-control-sm" id="installment-date-filter">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="installments-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="date">
+                                        Tarih <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="description">
+                                        Açıklama <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th class="sortable text-end" data-sort="amount">
+                                        Tutar <i class="fas fa-sort"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="installments-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notlar Kartı -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sticky-note text-info me-2"></i>Müşteri Notları
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" id="notes-filter"
+                                   placeholder="Notlarda ara...">
+                            <input type="date" class="form-control form-control-sm" id="notes-date-filter">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-hover" id="notes-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="date">
+                                    Tarih <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="type">
+                                    Tip <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="description">
+                                    Açıklama <i class="fas fa-sort"></i>
+                                </th>
+                                <th>Not Alan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notes-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content border-0 rounded-5 shadow-lg overflow-hidden">
+                    <!-- Başlık -->
+                    <div class="modal-header gradient-header text-white py-4">
+                        <h5 class="modal-title fw-bold fs-3 d-flex align-items-center" id="searchModalLabel">
+                            <i class="fas fa-headset me-3 fs-2"></i> Çağrı Detayları
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                    </div>
+        
+                    <!-- İçerik -->
+                    <div class="modal-body p-5 bg-light">
+                        <div class="row g-4">
+                            <!-- Telefon Bilgisi -->
+                            <div class="col-lg-6">
+                                <div class="form-floating">
+                                    <input type="text" id="phone_number" class="form-control styled-input" placeholder="Telefon Numarası" readonly>
+                                    <label for="phone_number"><i class="fas fa-phone-alt text-primary"></i> <strong>Telefon Numarası</strong></label>
+                                </div>
+                            </div>
+        
+                            <!-- Müşteri Kodu Bilgisi -->
+                            <div class="col-lg-6">
+                                <div class="form-floating">
+                                    <input type="text" id="customer_code" class="form-control styled-input" placeholder="Müşteri Kodunu Girin">
+                                    <label for="customer_code"><i class="fas fa-id-badge text-primary"></i> <strong>Müşteri Kodu</strong></label>
+                                </div>
+                            </div>
+        
+                            <!-- Kategori Radio Button Menüsü -->
+                            <div class="col-lg-12">
+                                <div class="p-4 bg-white rounded-4 shadow-sm border-primary">
+                                    <h6 class="text-muted fw-bold mb-3"><i class="fas fa-list-alt me-2 text-primary"></i>Konu Seçiniz:</h6>
+                                    <div id="category-container" class="d-flex flex-wrap gap-3 text-center"></div>
+                                </div>
+                            </div>
+        
+                            <!-- Dinamik Tarih Alanı -->
+                            <div id="date-input-container" class="col-lg-6 d-none">
+                                <div class="form-floating">
+                                    <input type="date" id="extra-date" class="form-control styled-input" placeholder="Tarih Girin">
+                                    <label for="extra-date"><i class="fas fa-calendar-alt text-primary"></i> <strong>Ek Tarih</strong></label>
+                                </div>
+                            </div>
+        
+                            <!-- Not Ekleme Alanı -->
+                            <div class="col-lg-12">
+                                <div class="form-floating">
+                                    <textarea id="user-note" class="form-control styled-input" placeholder="Ek açıklama girin..."></textarea>
+                                    <label for="user-note"><i class="fas fa-sticky-note text-primary"></i> <strong>Not Ekle</strong></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Alt Kısım (Footer) -->
+                    <div class="modal-footer d-flex justify-content-between gradient-footer py-4">
+                        <button type="button" id="save-note-btn" class="btn btn-success btn-lg px-5 shadow-lg d-flex align-items-center">
+                            <i class="fas fa-save me-2"></i> Kaydet ve Onayla
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-lg px-5 shadow-lg d-flex align-items-center" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> Kapat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/homepage.js' %}"></script>
+<script type="module" src="{% static 'js/call_listener.js' %}"></script>
+{% endblock %}

@@ -1,37 +1,38 @@
 import aiohttp
-from asgiref.sync import sync_to_async
+import asyncio
 from django.core.cache import cache
+import contextvars
 
-# Kalıcı aiohttp oturum nesnesi
-session = None
+# Global session nesnesi
+_aiohttp_session = None
+_session_lock = asyncio.Lock()
 
 
-# Oturum oluşturma ve kapatma
 async def get_aiohttp_session():
-    global session
-    if session is None or session.closed:
-        session = aiohttp.ClientSession()
-    return session
+    global _aiohttp_session
+
+    async with _session_lock:
+        if _aiohttp_session is None or _aiohttp_session.closed:
+            _aiohttp_session = aiohttp.ClientSession()
+        return _aiohttp_session
 
 
 async def close_aiohttp_session():
-    """Uygulama kapanırken veya oturum resetlenmesi gerektiğinde çağrılabilir."""
-    global session
-    if session and not session.closed:
-        await session.close()
+    global _aiohttp_session
+    if _aiohttp_session and not _aiohttp_session.closed:
+        try:
+            await _aiohttp_session.close()
+        except Exception as e:
+            print(f"Error closing aiohttp session: {str(e)}")
+        _aiohttp_session = None
 
 
-# Önbellekten veri alma, isteğe bağlı varsayılan değer ile
-async def get_cached_data(cache_key: str, default=None):
-    try:
-        return await sync_to_async(cache.get)(cache_key, default)
-    except Exception:
-        return default
+async def get_cached_data(key):
+    return cache.get(key)
 
 
-# Önbelleğe veri ekleme
-async def set_cached_data(cache_key: str, data, timeout: int):
-    await sync_to_async(cache.set)(cache_key, data, timeout)
+async def set_cached_data(key, data, timeout):
+    cache.set(key, data, timeout)
 
 
 # API'den Session ID alma

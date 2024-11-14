@@ -8,6 +8,7 @@ from api.firebase.firebase_client import login
 
 CONN = http.client.HTTPSConnection("talipsan.com.tr")
 
+
 def login_view(request):
     token = request.GET.get("Token", "").strip()
     if not token:
@@ -73,4 +74,4 @@ def user_panel(request):
     }
 
     # Kullanıcı paneli sayfasını döndür
-    return render(request, 'user_panel.html', context)
+    return render(request, 'pages/user_panel.html', context)
