@@ -2,17 +2,23 @@
 let originalPhones = [];
 let originalNotes = [];
 let originalInstallments = [];
+let originalAddresses = [];
+let originalAttributes = [];
 let currentData = {
     phones: [],
     notes: [],
-    installments: []
+    installments: [],
+    addresses: [],
+    attributes: []
 };
 
 // Sıralama durumunu takip etmek için
 const sortState = {
     phones: { column: null, direction: 'asc' },
     installments: { column: null, direction: 'asc' },
-    notes: { column: null, direction: 'asc' }
+    notes: { column: null, direction: 'asc' },
+    addresses: { column: null, direction: 'asc' },
+    attributes: { column: null, direction: 'asc' },
 };
 
 // İstek durumunu takip etmek için
@@ -71,18 +77,22 @@ function clearCustomerData() {
     currentData = {
         phones: [],
         notes: [],
-        installments: []
+        installments: [],
+        addresses: [],
+        attributes: [],
     };
 
     updatePhonesList(currentData.phones);
     updateNotesList(currentData.notes);
     updateInstallmentsList(currentData.installments);
+    updateAddressesList(currentData.addresses);
+    updateAttributesList(currentData.attributes);
 
     const fields = [
         'customer-name', 'customer-surname', 'customer-identity',
         'customer-father', 'customer-mother', 'account-opening-date',
         'credit-limit', 'remaining-limit', 'account-status',
-        'customer-job'
+        'customer-job', 'bad-debt'
     ];
 
     fields.forEach(id => {
@@ -155,6 +165,48 @@ function filterInstallments() {
     }
 }
 
+// Adres filtreleme fonksiyonu
+function filterAddresses() {
+    const searchText = document.getElementById('addresses-filter').value.toLowerCase();
+    const typeFilter = document.getElementById('address-type-filter').value.toLowerCase();
+
+    currentData.addresses = originalAddresses.filter(address => {
+        const matchSearch = address.Adress.toLowerCase().includes(searchText);
+        const matchType = !typeFilter || address.AdressType.toLowerCase().includes(typeFilter);
+        return matchSearch && matchType;
+    });
+
+    if (sortState.addresses.column) {
+        sortData('addresses', sortState.addresses.column, sortState.addresses.direction);
+    } else {
+        updateAddressesList(currentData.addresses);
+    }
+}
+
+function filterAttributes() {
+    const searchText = document.getElementById('attributes-filter').value.toLowerCase();
+    const dateFilter = document.getElementById('attributes-date-filter').value;
+
+    currentData.attributes = originalAttributes.filter(attribute => {
+        // Assuming we have a date field in a similar format, adjust if the date field differs.
+        const attributeDate = new Date(parseInt(attribute.Date.replace(/[^0-9]/g, '')));
+        const formattedDate = attributeDate.toISOString().split('T')[0];
+
+        const matchSearch = attribute.AttributeDescription.toLowerCase().includes(searchText) ||
+                            attribute.AttributeTypeDescription.toLowerCase().includes(searchText);
+        const matchDate = !dateFilter || formattedDate === dateFilter;
+        return matchSearch && matchDate;
+    });
+
+    if (sortState.attributes.column) {
+        sortData('attributes', sortState.attributes.column, sortState.attributes.direction);
+    } else {
+        updateAttributesList(currentData.attributes);
+    }
+}
+
+
+
 // Sıralama Fonksiyonları
 function sortData(type, column, direction) {
     const data = [...currentData[type]];
@@ -209,6 +261,36 @@ function sortData(type, column, direction) {
                         break;
                 }
                 break;
+
+            case 'addresses':
+                switch(column) {
+                    case 'type':
+                        aVal = a.AdressType;
+                        bVal = b.AdressType;
+                        break;
+                    case 'address':
+                        aVal = a.Adress;
+                        bVal = b.Adress;
+                        break;
+                }
+                break;
+
+            case 'attributes':
+                switch(column) {
+                    case 'type':
+                        aVal = a.AttributeTypeDescription;
+                        bVal = b.AttributeTypeDescription;
+                        break;
+                    case 'description':
+                        aVal = a.AttributeDescription;
+                        bVal = b.AttributeDescription;
+                        break;
+                    case 'code':
+                        aVal = a.AttributeTypeCode;
+                        bVal = b.AttributeTypeCode;
+                        break;
+                }
+                break;
         }
 
         if (aVal === bVal) return 0;
@@ -225,6 +307,12 @@ function sortData(type, column, direction) {
             break;
         case 'notes':
             updateNotesList(data);
+            break;
+        case 'addresses':
+            updateAddressesList(data);
+            break;
+        case 'attributes':
+            updateAttributesList(data);
             break;
     }
 }
@@ -244,12 +332,16 @@ function updateUI(data) {
     originalPhones = data.customer_phones;
     originalNotes = data.customer_notes1;
     originalInstallments = data.customer_installments;
+    originalAddresses = data.customer_addresses;
+    originalAttributes = data.customer_attributes;
 
     // Mevcut verileri güncelle
     currentData = {
         phones: [...data.customer_phones],
         notes: [...data.customer_notes1],
-        installments: [...data.customer_installments]
+        installments: [...data.customer_installments],
+        addresses: [...data.customer_addresses],
+        attributes: [...data.customer_attributes]
     };
 
     // Telefon tiplerini filtre dropdown'ına ekle
@@ -258,10 +350,20 @@ function updateUI(data) {
     phoneTypeFilter.innerHTML = '<option value="">Tüm Tipler</option>' +
         phoneTypes.map(type => `<option value="${type}">${type}</option>`).join('');
 
+    // Adres tiplerini filtre dropdown'ına ekle
+    const addressTypes = [...new Set(data.customer_addresses.map(a => a.AdressType))];
+    const addressTypeFilter = document.getElementById('address-type-filter');
+    if (addressTypeFilter) {
+        addressTypeFilter.innerHTML = '<option value="">Tüm Adresler</option>' +
+            addressTypes.map(type => `<option value="${type}">${type}</option>`).join('');
+    }
+
     updateCustomerDetails(data.customer_details[0]);
     updatePhonesList(currentData.phones);
     updateNotesList(currentData.notes);
     updateInstallmentsList(currentData.installments);
+    updateAddressesList(currentData.addresses);
+    updateAttributesList(currentData.attributes);
 }
 
 function updateCustomerDetails(details) {
@@ -275,7 +377,8 @@ function updateCustomerDetails(details) {
         'credit-limit': details.CreditLimit,
         'remaining-limit': details.RemainingLimit,
         'account-status': details.AccountStatus,
-        'customer-job': details.Job
+        'customer-job': details.Job,
+        'bad-debt': details.BadDebt
     };
 
     Object.entries(fields).forEach(([id, value]) => {
@@ -301,6 +404,25 @@ function updatePhonesList(phones) {
             </td>
         </tr>
     `).join('');
+}
+
+// Başarılı işlem sonrası liste güncelleme fonksiyonu
+function updatePhonesListAfterAdd(newPhone) {
+    const phonesList = document.getElementById('phones-list');
+    if (!phonesList) return;
+
+    // Yeni telefonu listeye ekle
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td>${COMMUNICATION_TYPES[newPhone.CommunicationTypeCode]}</td>
+        <td>${formatPhoneNumber(newPhone.CommAddress)}</td>
+        <td>
+            <a href="tel:${newPhone.CommAddress}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-phone"></i>
+            </a>
+        </td>
+    `;
+    phonesList.insertBefore(newRow, phonesList.firstChild);
 }
 
 function updateNotesList(notes) {
@@ -330,10 +452,56 @@ function updateInstallmentsList(installments) {
     `).join('');
 }
 
+// Adres listesini güncelleme fonksiyonu
+function updateAddressesList(addresses) {
+    const addressesList = document.getElementById('addresses-list');
+    if (!addressesList) return;
+
+    addressesList.innerHTML = addresses.map(address => `
+        <tr>
+            <td><span class="badge bg-primary">${address.AdressType}</span></td>
+            <td>${address.Adress}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('${address.Adress}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateAttributesList(attributes) {
+    const attributesList = document.getElementById('attributes-list');
+    if (!attributesList) return;
+
+    attributesList.innerHTML = attributes.map(attribute => `
+        <tr>
+            <td><span class="badge bg-primary">${attribute.AttributeTypeDescription}</span></td>
+            <td>${attribute.AttributeDescription}</td>
+            <td>${attribute.AttributeTypeCode}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('${attribute.AttributeDescription}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+
 // Yardımcı Fonksiyonlar
 function formatDate(dateString) {
     if (!dateString) return '---';
     return new Date(parseInt(dateString.replace(/[^0-9]/g, ''))).toLocaleDateString('tr-TR');
+}
+
+// Kopyalama fonksiyonu
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showAlert("Adres kopyalandı!", "success");
+    }).catch(err => {
+        showAlert("Adres kopyalanırken bir hata oluştu", "danger");
+    });
 }
 
 function showAlert(message, type = 'warning') {
@@ -379,7 +547,7 @@ function showLoadingState() {
         <tr>
             <td colspan="4" class="text-center py-4">
                 <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Yükleniyor...</span>
+                    <span class="visually-hidden"></span>
                 </div>
             </td>
         </tr>
@@ -396,22 +564,25 @@ function showLoadingState() {
         'customer-name', 'customer-surname', 'customer-identity',
         'customer-father', 'customer-mother', 'account-opening-date',
         'credit-limit', 'remaining-limit', 'account-status',
-        'customer-job'
+        'customer-job', 'bad-debt'
     ];
 
     fields.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-            element.textContent = 'Yükleniyor...';
+            element.textContent = '';
         }
     });
 }
 
 // Sayfa yüklendiğinde URL parametresini kontrol et
 document.addEventListener('DOMContentLoaded', function() {
+    addPhoneButton();
     // URL'den customer parametresini al
     const urlParams = new URLSearchParams(window.location.search);
     const customerCode = urlParams.get('customer');
+    const phoneInput = document.getElementById('phone_number');
+    const currentUsername = "{{ username }}";
 
     if (customerCode) {
         // Search input'u doldur
@@ -432,6 +603,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            e.target.value = value;
+        });
+    }
+
+    // Form submit olayını engelle
+    const form = document.getElementById('addPhoneForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            savePhone();
+        });
+    }
+
     // Event listener'ları ekle
     setupEventListeners();
 
@@ -449,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // POST isteği için veri yapısını hazırla
         const requestData = {
-            CustomerCode: "ÖRNEK_MÜŞTERİ_KODU", // Bu değer uygun müşteri koduyla değiştirilmeli
+            CustomerCode: customerCode, // Bu değer uygun müşteri koduyla değiştirilmeli
             UserWarningCode: category.value,
             CommAddress: phoneNumber,
             username: currentUsername,  // currentUsername daha önce ayarlanmış olmalı
@@ -518,6 +706,8 @@ function setupEventListeners() {
     document.getElementById('notes-date-filter')?.addEventListener('change', filterNotes);
     document.getElementById('installment-type-filter')?.addEventListener('change', filterInstallments);
     document.getElementById('installment-date-filter')?.addEventListener('change', filterInstallments);
+    document.getElementById('addresses-filter')?.addEventListener('input', filterAddresses);
+    document.getElementById('address-type-filter')?.addEventListener('change', filterAddresses);
 }
 
 
@@ -553,4 +743,190 @@ function showCustomerNotesModule(notes) {
     listItem.textContent = `${note.type} - ${note.description}`;
     list.appendChild(listItem);
   });
+}
+
+// Telefon kaydetme fonksiyonu
+async function savePhone() {
+    const saveButton = document.querySelector('#addPhoneModal .btn-primary');
+    const originalButtonText = saveButton.innerHTML;
+
+    try {
+        // Loading durumunu göster
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...';
+
+        // Form verilerini al
+        const phoneType = document.getElementById('phone_type').value;
+        const phoneNumber = document.getElementById('phone_number').value;
+
+        // Validasyonlar
+        if (!phoneType || !phoneNumber) {
+            throw new Error("Lütfen tüm alanları doldurunuz");
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            throw new Error("Telefon numarası 10 haneli olmalıdır");
+        }
+
+        // API isteği için data hazırla
+        const requestData = {
+            CustomerCode: currentCustomerCode, // Global değişken - Müşteri detay sayfasından alınacak
+            CommunicationTypeCode: phoneType,
+            CommAddress: phoneNumber,
+            username: currentUsername
+        };
+
+        // API isteği
+        const response = await fetch('/api/add-customer-phone/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(responseData.error || 'Telefon eklenirken bir hata oluştu');
+        }
+
+        // Başarılı işlem
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addPhoneModal'));
+        modal.hide();
+
+        // Telefon listesini güncelle
+        if (!currentData.phones) currentData.phones = [];
+        currentData.phones.push({
+            CommunicationTypeDescription: getCommunicationTypeDescription(phoneType),
+            Phone: phoneNumber,
+            CommunicationTypeCode: phoneType
+        });
+        updatePhonesList(currentData.phones);
+
+        showAlert("Telefon numarası başarıyla eklendi", "success");
+        document.getElementById('addPhoneForm').reset();
+
+    } catch (error) {
+        console.error('Hata:', error);
+        showAlert(error.message, "danger");
+    } finally {
+        // Loading durumunu kaldır
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalButtonText;
+    }
+}
+
+// İletişim tiplerinin açıklamalarını getir
+function getCommunicationTypeDescription(code) {
+    const types = {
+        '001': 'Kendi Cep Telefonu',
+        '002': 'Ulaşılmasını İstediği 2.Cep Numarası',
+        '003': 'İş Telefonu',
+        '004': 'Ev Telefonu',
+        '010': 'Baba Telefonu',
+        '011': 'Anne Telefonu',
+        '012': 'Eşinin Telefonu',
+        '013': 'Arkadaş Telefonu',
+        '014': 'Kardeş (aile bireyi)',
+        '016': 'Kızı',
+        '017': 'Oğlu',
+        '018': 'Yakın akrabası',
+        '019': 'Tanıdığı',
+        '022': 'Güncel Olabilecek Telefonu',
+        '023': 'Yeni Güncel Telefonu Olabilir'
+    };
+    return types[code] || 'Bilinmeyen Tip';
+}
+
+// Başlık kısmına ekle butonunu ekle
+function addPhoneButton() {
+    const button = document.createElement('button');
+    button.className = 'btn btn-primary btn-sm ms-2';
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#addPhoneModal');
+    button.innerHTML = '<i class="fas fa-plus me-1"></i> Yeni Telefon';
+
+    const headerActions = document.querySelector('.card-header .d-flex:first-child');
+    if (headerActions) {
+        headerActions.appendChild(button);
+    }
+}
+
+
+// Telefon numarası format fonksiyonu
+function formatPhoneNumber(number) {
+    return number.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+}
+
+ // Dropdown'dan seçenekleri yükler
+async function loadAttributes(attributeTypeCode) {
+    try {
+        const response = await fetch(`/api/get_customer_attributes_list/${attributeTypeCode}`);
+        const attributes = await response.json();
+
+        const attributesList = document.getElementById('attributes-list');
+        attributesList.innerHTML = ''; // Clear the list
+
+        attributes.forEach(attribute => {
+            attributesList.innerHTML += `
+                <tr>
+                    <td><span class="badge bg-primary">${attribute.AttributeTypeDescription}</span></td>
+                    <td>
+                        <select class="form-select form-select-sm description-dropdown" onchange="postAttributeChange('${attribute.AttributeCode}', '${attribute.AttributeTypeCode}', this.value)">
+                            <option value="">Seçiniz</option>
+                            <option value="${attribute.AttributeDescription}">${attribute.AttributeDescription}</option>
+                            <!-- Add more options here if available -->
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('${attribute.AttributeDescription}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (error) {
+        console.error("Özellikler yüklenirken hata oluştu:", error);
+    }
+}
+
+
+// Dropdown değiştiğinde POST isteği gönderen fonksiyon
+async function postAttributeChange(attributeCode, attributeTypeCode, selectedDescription) {
+    if (!selectedDescription) return; // Boş seçimlerde işlem yapma
+
+    const customerCode = searchInput.value.trim();
+    if (!customerCode) {
+        alert("Müşteri kodu giriniz.");
+        return;
+    }
+
+    const data = {
+        CustomerCode: customerCode,
+        AttributeTypeCode: attributeTypeCode,
+        AttributeCode: attributeCode,
+        Description: selectedDescription,
+        username: currentUsername
+    };
+
+    try {
+        const response = await fetch('/api/add_customer_attribute/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert("Açıklama başarıyla kaydedildi!");
+        } else {
+            alert("Açıklama kaydedilemedi: " + result.error);
+        }
+    } catch (error) {
+        console.error("Açıklama kaydedilirken hata oluştu:", error);
+    }
 }

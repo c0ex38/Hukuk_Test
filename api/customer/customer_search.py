@@ -127,5 +127,4 @@ async def customer_search(request):
 
 # Test amacıyla username veriyoruz
 # async def get_username_from_session(request):
-#    # Bu satırı test için manuel bir kullanıcı adı ile değiştiriyoruz
 #    return '005'

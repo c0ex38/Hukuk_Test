@@ -6,19 +6,18 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from ..auth.session_manager import SessionManager
 from .base import get_aiohttp_session
+from asgiref.sync import async_to_sync
 
-# Temel ayarlar
+# Base settings
 BASE_URL = "http://176.236.176.155:1260"
 PROCEDURE_NAME = "[360Portal].dbo.CustomerService_getCustomerAttributesList"
-CACHE_TIMEOUT = 3600  # 1 saat
+CACHE_TIMEOUT = 3600  # 1 hour
 
-
-# Önbellek anahtarı oluşturucu
+# Cache key generator
 def get_cache_key(attribute_type_code: str) -> str:
     return f"customer_attributes_list_{attribute_type_code}"
 
-
-# Öznitelikleri al
+# Fetch attributes
 async def get_attributes(session_id: str, attribute_type_code: str) -> Optional[Dict]:
     cache_key = get_cache_key(attribute_type_code)
     cached_data = await sync_to_async(cache.get)(cache_key)
@@ -39,19 +38,23 @@ async def get_attributes(session_id: str, attribute_type_code: str) -> Optional[
             return data
     return None
 
-
+# Update the view as synchronous by using async_to_sync at the call site
 @csrf_exempt
-async def get_customer_attributes_list(request, attribute_type_code):
-    """Müşteri öznitelik listesini getiren view fonksiyonu"""
-    if request.method != 'GET':
-        return JsonResponse({"error": "Sadece GET istekleri destekleniyor"}, status=405)
+def get_customer_attributes_list(request, attribute_type_code):
+    """View function to fetch customer attribute list"""
 
-    session_id = await SessionManager.get_session_id_from_api(SessionManager.DEFAULT_CREDENTIALS)
-    if not session_id:
-        return JsonResponse({"error": "Session ID alınamadı."}, status=500)
+    async def async_handler():
+        if request.method != 'GET':
+            return JsonResponse({"error": "Only GET requests are supported"}, status=405)
 
-    attributes = await get_attributes(session_id, attribute_type_code)
-    if attributes is None:
-        return JsonResponse({"error": f"Öznitelikler alınamadı: {attribute_type_code}"}, status=500)
+        session_id = await SessionManager.get_session_id_from_api(SessionManager.DEFAULT_CREDENTIALS)
+        if not session_id:
+            return JsonResponse({"error": "Failed to retrieve session ID."}, status=500)
 
-    return JsonResponse(attributes, safe=False)
+        attributes = await get_attributes(session_id, attribute_type_code)
+        if attributes is None:
+            return JsonResponse({"error": f"Failed to retrieve attributes: {attribute_type_code}"}, status=500)
+
+        return JsonResponse(attributes, safe=False)
+
+    return async_to_sync(async_handler)()
