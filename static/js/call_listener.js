@@ -21,6 +21,49 @@ document.addEventListener('DOMContentLoaded', function () {
     const dateInputContainer = document.getElementById('date-input-container');
     const extraDateInput = document.getElementById('extra-date');
 
+    // Sabit kategori listesi
+    const categories = [
+        { code: '006', description: 'GSM NUMARASI ALINSIN' },
+        { code: '009', description: 'AVUKAT UYARI MEKTUBU GÖNDERİLSİN' },
+        { code: '107', description: 'Ödeme Tarih Verilenler' },
+        { code: '109', description: 'Arandı Ödeme Tarihi Verdi' },
+        { code: '110', description: 'Arandı telefon yanlış denildi' },
+        { code: '111', description: 'Arandı borcu ödemeyecem dedi' },
+        { code: '112', description: 'Telefon no kullanılmıyor' },
+        { code: '114', description: 'Telefona Cevap Verilmiyor' },
+        { code: '116', description: 'Telefonu Meşgule alıyor' },
+        { code: '119', description: 'Sözleşme Hukuk Servisinde' },
+        { code: '125', description: 'Yeniden Aransın' },
+        { code: '128', description: 'Uyarı Sms Yollandı' },
+        { code: '132', description: 'KVKK Gereği Hesap Yenilenmesi' },
+        { code: '141', description: 'İKİ DESABI OLUP BİRLEŞTİRİLEN HESAPLAR' },
+        { code: '139', description: 'Vefat Edten ve Şehit Olanlar' }
+    ];
+
+    // Kategorileri UI'ya ekle
+    categoryContainer.innerHTML = '';
+    categories.forEach(({ code, description }) => {
+        const radioWrapper = document.createElement('div');
+        radioWrapper.classList.add('form-check', 'col');
+
+        const radioInput = document.createElement('input');
+        radioInput.classList.add('form-check-input');
+        radioInput.type = 'radio';
+        radioInput.name = 'category';
+        radioInput.id = `category-${code}`;
+        radioInput.value = code;
+        radioInput.dataset.description = description;
+
+        const radioLabel = document.createElement('label');
+        radioLabel.classList.add('form-check-label');
+        radioLabel.htmlFor = `category-${code}`;
+        radioLabel.textContent = description;
+
+        radioWrapper.appendChild(radioInput);
+        radioWrapper.appendChild(radioLabel);
+        categoryContainer.appendChild(radioWrapper);
+    });
+
     if (typeof currentUsername !== 'undefined' && currentUsername) {
         const userCallHistoryRef = ref(database, `users/${currentUsername}/call_history`);
 
@@ -31,9 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const phoneNumberInput = document.getElementById('phone_number');
                 phoneNumberInput ? (phoneNumberInput.value = data.phone_number) : console.error("Telefon numarası alanı bulunamadı.");
 
-                get_Note_Categories();
                 document.getElementById('user-note').value = "";
-
                 $('#searchModal').modal('show');
 
                 document.querySelectorAll('button').forEach(button => {
@@ -70,54 +111,3 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("Kullanıcı adı bulunamadı.");
     }
 });
-
-// Kategorileri getirme fonksiyonu
-function get_Note_Categories() {
-    const categoryContainer = document.getElementById('category-container');
-    categoryContainer.innerHTML = '<p>Yükleniyor...</p>';
-
-    fetch('/api/get-customer-note-categories/')
-        .then(response => response.json())
-        .then(data => {
-            categoryContainer.innerHTML = '';
-
-            if (data.length === 0) {
-                categoryContainer.innerHTML = '<p>Hiç kategori bulunamadı</p>';
-                return;
-            }
-
-            const allowedCodes = ['006', '009', '107', '109', '110', '111', '112', '114', '116', '119', '125', '128', '132', '141', '139'];
-            const filteredData = data.filter(item => allowedCodes.includes(item.UserWarningCode));
-
-            if (filteredData.length === 0) {
-                categoryContainer.innerHTML = '<p>Filtrelenen kategoriler bulunamadı</p>';
-                return;
-            }
-
-            filteredData.forEach(({ UserWarningCode, UserWarningDescription }) => {
-                const radioWrapper = document.createElement('div');
-                radioWrapper.classList.add('form-check', 'col');
-
-                const radioInput = document.createElement('input');
-                radioInput.classList.add('form-check-input');
-                radioInput.type = 'radio';
-                radioInput.name = 'category';
-                radioInput.id = `category-${UserWarningCode}`;
-                radioInput.value = UserWarningCode;
-                radioInput.dataset.description = UserWarningDescription;
-
-                const radioLabel = document.createElement('label');
-                radioLabel.classList.add('form-check-label');
-                radioLabel.htmlFor = `category-${UserWarningCode}`;
-                radioLabel.textContent = UserWarningDescription;
-
-                radioWrapper.appendChild(radioInput);
-                radioWrapper.appendChild(radioLabel);
-                categoryContainer.appendChild(radioWrapper);
-            });
-        })
-        .catch(error => {
-            console.error('Kategori yüklenirken hata oluştu:', error);
-            categoryContainer.innerHTML = '<p>Veri Yüklenemedi</p>';
-        });
-}

@@ -217,47 +217,38 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Başlık ve Alt Kısım (Footer) için renk geçişleri */
-.gradient-header {
-    background: linear-gradient(45deg, #007bff, #6610f2);
+.modal-content {
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-.gradient-footer {
-    background: linear-gradient(45deg, #6610f2, #007bff);
-}
-
-/* Form giriş alanları için stil */
 .styled-input {
     border: 2px solid #007bff;
     border-radius: 0.5rem;
-    font-size: 1.1rem;
     padding: 1rem;
+    font-size: 1.1rem;
 }
 
-/* Radyo butonlarının kapsayıcı alanı */
+/* Kategori alanındaki radyo butonları düzeni */
 #category-container .form-check {
-    flex: 1 1 25%;
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
-/* Başlık ve alt kısım butonları için gölge ve yuvarlak hatlar */
-.modal-content {
-    border-radius: 1rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+#category-container label {
+    margin-left: 0.5rem;
 }
 
 .modal-footer button {
+    padding: 0.75rem 2rem;
     border-radius: 30px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hoş bir hover efekti ekleyin */
 .modal-footer button:hover {
     transform: scale(1.05);
-}
-
-/* Telefon, müşteri kodu ve not alanları için etiket ve metin */
-.modal-body .form-floating label {
-    font-size: 1.15rem;
-    color: #495057;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
