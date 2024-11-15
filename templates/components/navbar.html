@@ -4,7 +4,7 @@
         <!-- Logo ve Panel Adı -->
         <a class="navbar-brand d-flex align-items-center" href="{% url 'user_panel' %}">
             <img src="{% static 'images/logo_app.png' %}" alt="Logo" width="40" height="40" class="rounded-circle mr-2">
-            <span class="font-weight-bold">Customer Management</span>
+            <span class="font-weight-bold">DGN</span>
         </a>
 
         <!-- Toggler (Mobil İçin) -->
@@ -16,7 +16,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <!-- Sağ Taraf: Kullanıcı Bilgisi ve Bağlantılar -->
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a class="nav-link" href="{% url 'user_panel' %}">Panelim</a></li>
 
                 <!-- Sadece Homepage Sayfasında Görünen Arama Çubuğu -->
                 {% if request.path == '/homepage/' %}
@@ -29,7 +28,7 @@
                 <!-- Profil ve Bildirim İkonları -->
                 {% if username %}
                     <li class="nav-item">
-                        <span class="navbar-text text-white mx-3">Hoş geldiniz, {{ username }}</span>
+                        <span class="navbar-text text-white mx-3">{{ username }}</span>
                     </li>
                     {% if is_admin %}
                         <li class="nav-item">
@@ -41,16 +40,13 @@
                         <a class="nav-link" href="{% url 'login' %}">Giriş Yap</a>
                     </li>
                 {% endif %}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-bell fa-lg"></i></a>
-                </li>
+            
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-user-circle fa-lg"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
-                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'user_panel' %}">Panelim</a>
                         <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                     </div>
                 </li>
