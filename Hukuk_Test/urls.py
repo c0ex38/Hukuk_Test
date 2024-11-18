@@ -11,7 +11,5 @@ urlpatterns = [
     path('logout/', logout.logout_view, name='logout'),
     path('homepage/', views.homepage, name='homepage'),
     path('customer_search/', views.customer_search, name='customer_search'),
-    path('call_result/', views.call_result, name='call_result'),
     path('access-denied/', views.access_denied, name='access_denied'),
-    path('test/', views.test_page, name='test_page'),
 ]

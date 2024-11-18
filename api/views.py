@@ -1,31 +1,23 @@
+# views.py
 from django.shortcuts import render
+from django.views.decorators.cache import never_cache
 
 
+@never_cache
 def homepage(request):
-    # Eğer kullanıcı giriş yapmamışsa
-    if 'username' not in request.session:
-        return render(request, 'pages/access_denied.html')  # Erişim yok sayfasına yönlendir
-
-    # Kullanıcı giriş yapmışsa devam et
-    username = request.session.get('username')
     context = {
-        'username': username
+        'username': request.session.get('username')
     }
     return render(request, 'pages/homepage.html', context)
 
 
+@never_cache
 def customer_search(request):
-    return render(request, 'pages/customer_search.html')
-
-
-
-def call_result(request):
-    return render(request, 'pages/call_result.html')
+    context = {
+        'username': request.session.get('username')
+    }
+    return render(request, 'pages/customer_search.html', context)
 
 
 def access_denied(request):
     return render(request, 'pages/access_denied.html')
-
-
-def test_page(request):
-    return render(request, 'pages/test.html')
