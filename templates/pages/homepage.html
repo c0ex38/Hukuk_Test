@@ -91,9 +91,7 @@
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-phone text-success me-2"></i>İletişim Bilgileri
                             </h5>
-                            <button class="btn btn-sm btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
-                                <i class="fas fa-plus me-1"></i> Ekle
-                            </button>
+
                         </div>
                         <div class="d-flex gap-2">
                             <input type="text" class="form-control form-control-sm" id="phone-filter"
@@ -101,6 +99,11 @@
                             <select class="form-select form-select-sm" id="phone-type-filter">
                                 <option value="">Tüm Tipler</option>
                             </select>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
+                                <i class="fas fa-plus me-1"></i> Ekle
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -433,6 +436,22 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module" src="{% static 'js/homepage.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+          apiKey: "AIzaSyARCS5Vm2DfKtZmgJxYf8ZNWhRlqPX6Qck",
+          authDomain: "hukuk-9a8a0.firebaseapp.com",
+          databaseURL: "https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "hukuk-9a8a0",
+          storageBucket: "hukuk-9a8a0.firebasestorage.app",
+          messagingSenderId: "972531735321",
+          appId: "1:972531735321:web:17e969ac94388ea8d50388"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="{% static 'js/test.js' %}"></script>
 {% endblock %}

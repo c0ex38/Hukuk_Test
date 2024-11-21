@@ -1,6 +1,3 @@
-const currentUsername = "{{ username }}";
-const currentAdmin = "{{ admin }}";
-
 // Sayfa yüklendiğinde
 window.onload = function() {
     // Geri tuşu kullanıldığında

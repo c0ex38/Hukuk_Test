@@ -7,7 +7,10 @@ from django.views.decorators.cache import never_cache
 from django.conf import settings
 from rest_framework import status
 from api.firebase.firebase_client import login
+import logging
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class APIConnection:
     def __init__(self):
@@ -27,7 +30,7 @@ class APIConnection:
             self.conn.request("POST", "/restapi?key=1837837", payload, self.headers)
             return self.conn.getresponse()
         except Exception as e:
-            print(f"API Request Error: {str(e)}")
+            logger.error(f"API Request Error: {str(e)}")
             raise
 
 
@@ -56,6 +59,7 @@ def login_view(request):
 
             # Yanıt durum kontrolü
             if response.status != 200:
+                logger.error(f"API request failed with status {response.status}")
                 return JsonResponse(
                     {"error": "API request failed."},
                     status=response.status
@@ -64,6 +68,7 @@ def login_view(request):
             # Yanıt işleme
             response_data = json.loads(response.read().decode('utf-8'))
             if 'username' not in response_data:
+                logger.error(f"Invalid response format: {response_data}")
                 return JsonResponse(
                     {"error": response_data.get('error', 'Invalid response format')},
                     status=status.HTTP_400_BAD_REQUEST
@@ -72,10 +77,16 @@ def login_view(request):
             # Session yönetimi
             request.session['username'] = response_data['username']
             request.session['is_admin'] = request.user.has_perm('modules.customers.admin')
-            request.session.set_expiry(settings.SESSION_COOKIE_AGE)  # Session süresini ayarla
+            request.session.set_expiry(settings.SESSION_COOKIE_AGE)
 
-            # Firebase login
-            login(response_data['username'], request.session['is_admin'])
+            try:
+                # Firebase login
+                firebase_response = login(response_data['username'], request.session['is_admin'])
+                logger.info(f"Firebase login response: {firebase_response}")
+            except Exception as firebase_error:
+                logger.error(f"Firebase login failed: {str(firebase_error)}")
+                # Firebase hatası olsa bile devam et
+                pass
 
             # Başarılı yönlendirme
             response = redirect('/user-panel/')
@@ -84,12 +95,14 @@ def login_view(request):
             response['Expires'] = '0'
             return response
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as json_error:
+            logger.error(f"JSON Decode Error: {str(json_error)}")
             return JsonResponse(
                 {"error": "Invalid JSON response from API"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         except Exception as e:
+            logger.error(f"General Error in login_view: {str(e)}")
             return JsonResponse(
                 {"error": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -98,6 +111,7 @@ def login_view(request):
             api_conn.close()
 
     except Exception as e:
+        logger.error(f"Unexpected error in login_view: {str(e)}")
         return JsonResponse(
             {"error": f"Unexpected error: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -109,7 +123,7 @@ def user_panel(request):
     try:
         username = request.session.get('username')
         if not username:
-            return redirect('login')  # veya access_denied sayfasına
+            return redirect('login')
 
         context = {
             'username': username,
@@ -123,5 +137,5 @@ def user_panel(request):
         return response
 
     except Exception as e:
-        print(f"User Panel Error: {str(e)}")
+        logger.error(f"User Panel Error: {str(e)}")
         return HttpResponseForbidden("Bir hata oluştu. Lütfen tekrar giriş yapın.")
