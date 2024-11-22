@@ -101,8 +101,8 @@
                             </select>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
-                                <i class="fas fa-plus me-1"></i> Ekle
+                            <button type="button" class="btn btn-primary" onclick="openAddPhoneModal()" data-bs-toggle="modal" data-bs-target="#addPhoneModal">
+                                Telefon Ekle
                             </button>
                         </div>
                     </div>
@@ -173,11 +173,14 @@
                                 <label for="phone_number" class="form-label">
                                     <i class="fas fa-phone text-primary me-1"></i> Telefon Numarası
                                 </label>
-                                <input type="tel" class="form-control" id="phone_number"
-                                       placeholder="5XX XXX XX XX" required
-                                       pattern="[0-9]{10}">
+                                <div class="input-group">
+                                    <span class="input-group-text">05</span>
+                                    <input type="tel" class="form-control" id="phone_number"
+                                           placeholder="XX XXX XX XX" required
+                                           pattern="[0-9]{9}" title="Telefon numarasını 05 ile başlayarak toplamda 11 haneli olarak giriniz.">
+                                </div>
                                 <div class="form-text text-muted">
-                                    Başında 0 olmadan 10 haneli numara giriniz
+                                    Telefon numarasını "05" sabitinden sonra 9 haneli olarak giriniz.
                                 </div>
                             </div>
                         </form>
@@ -278,7 +281,7 @@
                                                 Tarih <i class="fas fa-sort"></i>
                                             </th>
                                             <th class="sortable" data-sort="type">
-                                                Tip <i class="fas fa-sort"></i>
+                                                Uyarı <i class="fas fa-sort"></i>
                                             </th>
                                             <th class="sortable" data-sort="description">
                                                 Açıklama <i class="fas fa-sort"></i>
@@ -366,12 +369,12 @@
             </div>
         </div>
 
-        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 rounded-4 shadow-lg">
               <!-- Başlık -->
               <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="searchModalLabel">📞 Yeni Çağrı Detayları</h5>
+                <h5 class="modal-title" id="noteModalLabel">📞 Yeni Çağrı Detayları</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
               </div>
         
@@ -381,8 +384,8 @@
                   <!-- Telefon Bilgisi -->
                   <div class="col-lg-6">
                     <div class="form-floating">
-                      <input type="text" id="phone_number" class="form-control styled-input" placeholder="Telefon Numarası" readonly>
-                      <label for="phone_number"><i class="fas fa-phone-alt text-primary"></i> <strong>Telefon Numarası</strong></label>
+                        <input type="text" id="phone_number" class="form-control styled-input" placeholder="Telefon Numarası">
+                        <label for="phone_number"><i class="fas fa-phone-alt text-primary"></i> <strong>Telefon Numarası</strong></label>
                     </div>
                   </div>
         
@@ -436,22 +439,10 @@
         </div>
     </div>
 </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        // Firebase yapılandırması
-        const firebaseConfig = {
-          apiKey: "AIzaSyARCS5Vm2DfKtZmgJxYf8ZNWhRlqPX6Qck",
-          authDomain: "hukuk-9a8a0.firebaseapp.com",
-          databaseURL: "https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "hukuk-9a8a0",
-          storageBucket: "hukuk-9a8a0.firebasestorage.app",
-          messagingSenderId: "972531735321",
-          appId: "1:972531735321:web:17e969ac94388ea8d50388"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-    </script>
-    <script src="{% static 'js/test.js' %}"></script>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="{% static 'js/homepage.js' %}"></script>
 {% endblock %}

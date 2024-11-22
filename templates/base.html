@@ -38,7 +38,6 @@
     <script>
         // Session'dan gelen kullanıcı adını global değişken olarak tanımla
         const currentUsername = "{{ username }}";
-        console.log('Current username from session:', currentUsername); // Debug için
     </script>
 
     <!-- jQuery ve Bootstrap JavaScript -->
@@ -47,6 +46,22 @@
     <!-- Ana JavaScript Dosyası -->
     <script src="{% static 'js/main.js' %}"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Firebase yapılandırması
+        const firebaseConfig = {
+          apiKey: "AIzaSyARCS5Vm2DfKtZmgJxYf8ZNWhRlqPX6Qck",
+          authDomain: "hukuk-9a8a0.firebaseapp.com",
+          databaseURL: "https://hukuk-9a8a0-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "hukuk-9a8a0",
+          storageBucket: "hukuk-9a8a0.firebasestorage.app",
+          messagingSenderId: "972531735321",
+          appId: "1:972531735321:web:17e969ac94388ea8d50388"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
 
 </body>
 </html>

@@ -17,6 +17,28 @@ const COMMUNICATION_TYPES = {
     '023': 'Yeni Güncel Telefonu Olabilir'
 };
 
+// Sabit kategori listesi
+const CATEGORİES = [
+    { code: '006', description: 'GSM NUMARASI ALINSIN' },
+    { code: '009', description: 'AVUKAT UYARI MEKTUBU GÖNDERİLSİN' },
+    { code: '107', description: 'Ödeme Tarih Verilenler' },
+    { code: '109', description: 'Arandı Ödeme Tarihi Verdi' },
+    { code: '110', description: 'Arandı telefon yanlış denildi' },
+    { code: '111', description: 'Arandı borcu ödemeyecem dedi' },
+    { code: '112', description: 'Telefon no kullanılmıyor' },
+    { code: '114', description: 'Telefona Cevap Verilmiyor' },
+    { code: '116', description: 'Telefonu Meşgule alıyor' },
+    { code: '119', description: 'Sözleşme Hukuk Servisinde' },
+    { code: '125', description: 'Yeniden Aransın' },
+    { code: '128', description: 'Uyarı Sms Yollandı' },
+    { code: '132', description: 'KVKK Gereği Hesap Yenilenmesi' },
+    { code: '141', description: 'İKİ DESABI OLUP BİRLEŞTİRİLEN HESAPLAR' },
+    { code: '139', description: 'Vefat Eden ve Şehit Olanlar' }
+];
+
+// Belirli UserWarningCode'lar için tarih alanı göstermek
+const codesWithDate = ['107', '109'];
+
 // utils.js bölümü
 function formatDate(dateString) {
     if (!dateString) return '---';
@@ -73,6 +95,7 @@ const sortState = {
 };
 
 let isSearching = false;
+let currentCustomerCode = null;
 
 // API işlemleri
 async function searchCustomer(event) {
@@ -110,6 +133,9 @@ async function searchCustomer(event) {
             throw new Error("Müşteri bilgileri bulunamadı");
         }
 
+        // Global değişkene müşteri kodunu atıyoruz
+        currentCustomerCode = searchInput.value.trim();
+
         updateUI(data);
 
     } catch (error) {
@@ -130,15 +156,19 @@ async function savePhone() {
         saveButton.disabled = true;
         saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...';
 
-        const phoneType = document.getElementById('phone_type').value;
-        const phoneNumber = document.getElementById('phone_number').value;
+        const phoneType = document.getElementById('phone_type').value.trim();
+        const phoneNumber = document.getElementById('phone_number').value.trim();
 
         if (!phoneType || !phoneNumber) {
             throw new Error("Lütfen tüm alanları doldurunuz");
         }
 
-        if (!/^\d{10}$/.test(phoneNumber)) {
-            throw new Error("Telefon numarası 10 haneli olmalıdır");
+        if (!/^05\d{9}$/.test(phoneNumber)) {
+            throw new Error("Telefon numarası '05' ile başlamalı ve 11 haneli olmalıdır");
+        }
+
+        if (!currentCustomerCode) {
+            throw new Error("Müşteri kodu bulunamadı, lütfen önce bir arama yapın");
         }
 
         const requestData = {
@@ -159,7 +189,7 @@ async function savePhone() {
         const responseData = await response.json();
 
         if (!response.ok) {
-            throw new Error(responseData.error || 'Telefon eklenirken bir hata oluştu');
+            throw new Error(responseData.error || 'Telefon numarası kaydedilemedi. Lütfen tekrar deneyin.');
         }
 
         const modal = bootstrap.Modal.getInstance(document.getElementById('addPhoneModal'));
@@ -182,6 +212,70 @@ async function savePhone() {
         saveButton.innerHTML = originalButtonText;
     }
 }
+
+
+async function saveNote() {
+    const saveButton = document.querySelector('#noteModal .btn-success');
+    const originalButtonText = saveButton.innerHTML;
+
+    try {
+        // Buton durumunu güncelle (disabled ve yükleme spinner'ı)
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...';
+
+        const phoneNumber = document.getElementById('phone_number').value;
+        const customerCode = document.getElementById('customer_code').value;
+        const userNote = document.getElementById('user-note').value;
+        const categoryCode = document.querySelector('[data-category-code].active')?.dataset?.categoryCode;
+        const categoryDescription = document.querySelector('[data-category-code].active')?.innerText || '';
+        const extraDate = document.getElementById('extra-date').value || null;
+
+        // Doğrulama
+        if (!customerCode || !categoryCode) {
+            throw new Error("Lütfen müşteri kodu ve kategori seçimini doldurun!");
+        }
+
+        // API'ye gönderilecek veri
+        const requestData = {
+            CustomerCode: customerCode,
+            UserWarningCode: categoryCode,
+            UserWarningDescription: categoryDescription.trim(),
+            CommAddress: phoneNumber,
+            username: currentUsername,
+            Description: userNote + (extraDate ? ` Ek Tarih: ${extraDate}` : ''),
+        };
+
+        // API çağrısı
+        const response = await fetch('/api/add-customer-note', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(responseData.error || 'Müşteri notu eklenirken bir hata oluştu');
+        }
+
+        // Başarılı yanıt
+        const modal = bootstrap.Modal.getInstance(document.getElementById('noteModal'));
+        if (modal) modal.hide();
+
+        showAlert("Müşteri notu başarıyla kaydedildi", "success");
+
+    } catch (error) {
+        // Hata mesajını göster
+        showAlert(error.message, "danger");
+    } finally {
+        // Buton durumunu eski haline getir
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalButtonText;
+    }
+}
+
 
 async function loadAttributes(attributeTypeCode) {
     try {
@@ -213,6 +307,40 @@ async function loadAttributes(attributeTypeCode) {
     } catch (error) {
         console.error("Özellikler yüklenirken hata oluştu:", error);
         showAlert("Özellikler yüklenirken hata oluştu", "danger");
+    }
+}
+
+function populateCategories() {
+    const categoryContainer = document.getElementById('category-container');
+
+    if (!categoryContainer) return;
+
+    CATEGORİES.forEach((category) => {
+        const categoryButton = document.createElement('button');
+        categoryButton.type = 'button';
+        categoryButton.className = 'btn btn-outline-primary w-100 text-start fw-bold';
+        categoryButton.dataset.categoryCode = category.code;
+        categoryButton.innerHTML = `${category.code} - ${category.description}`;
+
+        categoryButton.addEventListener('click', function () {
+            handleCategorySelection(category.code);
+        });
+
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col';
+        colDiv.appendChild(categoryButton);
+
+        categoryContainer.appendChild(colDiv);
+    });
+}
+
+function handleCategorySelection(code) {
+    const dateInputContainer = document.getElementById('date-input-container');
+
+    if (codesWithDate.includes(code)) {
+        dateInputContainer.classList.remove('d-none');
+    } else {
+        dateInputContainer.classList.add('d-none');
     }
 }
 
@@ -446,7 +574,6 @@ function updateCustomerDetails(details) {
 }
 
 function sendCallToFirebase(phoneNumber) {
-    console.log('Gönderilen kullanıcı:', currentUsername);  // Debug için
 
     if (!currentUsername) {
         console.error('Kullanıcı adı bulunamadı!');
@@ -459,9 +586,9 @@ function sendCallToFirebase(phoneNumber) {
     // Yeni bir push ile benzersiz ID oluştur ve veriyi kaydet
     callHistoryRef.set({
         phone_number: phoneNumber,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
     })
     .then(() => {
-        console.log('Arama kaydı başarıyla eklendi');
     })
     .catch(error => {
         console.error('Firebase kayıt hatası:', error);
@@ -596,52 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 10) value = value.slice(0, 10);
             e.target.value = value;
-        });
-    }
-
-    // Not kaydetme butonu listener'ı
-    const saveNoteBtn = document.getElementById('save-note-btn');
-    if (saveNoteBtn) {
-        saveNoteBtn.addEventListener('click', async function() {
-            const phoneNumber = document.getElementById('phone_number').value;
-            const category = document.querySelector('input[name="category"]:checked');
-            const noteDescription = document.getElementById('user-note').value;
-
-            if (!category) {
-                showAlert("Lütfen bir kategori seçin.", "warning");
-                return;
-            }
-
-            const requestData = {
-                CustomerCode: currentCustomerCode,
-                UserWarningCode: category.value,
-                CommAddress: phoneNumber,
-                username: currentUsername,
-                Description: noteDescription,
-                UserWarningDescription: category.dataset.description
-            };
-
-            try {
-                const response = await fetch('/add-customer-note', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                if (response.ok) {
-                    showAlert("Not başarıyla kaydedildi!", "success");
-                    bootstrap.Modal.getInstance(document.getElementById('searchModal')).hide();
-                } else {
-                    const errorData = await response.json();
-                    showAlert(`Hata: ${errorData.error}`, "danger");
-                }
-            } catch (error) {
-                console.error('API isteği başarısız oldu:', error);
-                showAlert("Bir hata oluştu, lütfen tekrar deneyin.", "danger");
-            }
         });
     }
 
@@ -797,61 +878,93 @@ function clearCustomerData() {
 }
 
 function setupFirebaseCallListener() {
-    // call düğümünü dinle
-    const callRef = firebase.database().ref(`users/${currentUsername}/call`);
+    const callHistoryRef = firebase.database().ref(`users/${currentUsername}/call_history`);
+    let isFirstLoad = true;
 
-    // value event'i ile değişiklikleri yakala
-    callRef.on('value', (snapshot) => {
-        const callData = snapshot.val();
-        console.log('Yeni telefon numarası algılandı:', callData);
+    callHistoryRef.on('child_added', (snapshot) => {
+        const uuid = snapshot.key; // UUID'yi al
+        const callData = snapshot.val(); // Gerçek veriyi al
+
+        if (isFirstLoad) {
+            isFirstLoad = false; // İlk yüklemede modal açma
+            return;
+        }
 
         if (callData && callData.phone_number) {
-            openCallModal(callData);
+            openCallModal(callData, uuid); // UUID ile modalı aç
+        } else {
+            console.warn("Geçersiz callData: Veri bulunamadı.");
         }
     });
 }
 
-function openCallModal(callData) {
-    const modal = new bootstrap.Modal(document.getElementById('searchModal'));
+function openCallModal(callData, uuid) {
+    const modalElement = document.getElementById('noteModal');
     const phoneInput = document.getElementById('phone_number');
 
-    if (phoneInput && callData.phone_number) {
-        phoneInput.value = callData.phone_number;
+    if (!modalElement) {
+        console.error("Modal bulunamadı.");
+        return;
     }
 
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
-}
 
-function setupModalListeners() {
-    // Kaydet butonuna listener ekle
-    document.getElementById('save-note-btn').addEventListener('click', function() {
-        clearCallData();
-        bootstrap.Modal.getInstance(document.getElementById('searchModal')).hide();
-    });
-
-    // İptal/Kapat butonuna listener ekle
-    document.querySelector('button[data-bs-dismiss="modal"]').addEventListener('click', function() {
-        clearCallData();
-    });
-
-    // Modal kapatıldığında da temizlik yap
-    document.getElementById('searchModal').addEventListener('hidden.bs.modal', function() {
-        clearCallData();
+    modalElement.addEventListener('shown.bs.modal', () => {
+        if (phoneInput) {
+            phoneInput.value = callData.phone_number || "Bilinmiyor";
+        } else {
+            console.error("phone_number input bulunamadı.");
+        }
     });
 }
 
-function clearCallData() {
-    // call düğümünü temizle
-    const callRef = firebase.database().ref(`users/${currentUsername}/call`);
 
+function clearCallData(uuid) {
+    const callRef = firebase.database().ref(`users/${currentUsername}/call_history/${uuid}`);
     callRef.remove()
         .then(() => {
-            console.log('Call verisi başarıyla silindi');
         })
         .catch((error) => {
             console.error('Call verisi silinirken hata:', error);
         });
 }
+
+
+function setupModalListeners() {
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalElement = document.getElementById('noteModal');
+        const saveButton = document.getElementById('save-note-btn');
+
+        // Eğer modal veya buton bulunamazsa işlem yapma
+        if (!modalElement || !saveButton) {
+            console.error("Modal veya kaydet butonu bulunamadı.");
+            return;
+        }
+
+        saveButton.addEventListener('click', function () {
+            clearCallData();
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) modal.hide();
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            clearCallData();
+        });
+    });
+}
+
+function openAddPhoneModal() {
+    if (!currentCustomerCode) {
+        showAlert("Lütfen önce bir müşteri arayın ve seçin", "warning");
+        return;
+    }
+
+    // Eğer müşteri varsa modalı açmaya izin verilir.
+    const modal = new bootstrap.Modal(document.getElementById('addPhoneModal'));
+    modal.show();
+}
+
 
 // Modal yönetimi
 function setupModals() {
@@ -869,52 +982,15 @@ function setupModals() {
     }
 
     // Not ekleme modalı
-    const searchModal = document.getElementById('searchModal');
-    if (searchModal) {
-        searchModal.addEventListener('hidden.bs.modal', function () {
+    const noteModal = document.getElementById('noteModal');
+    if (noteModal) {
+        noteModal.addEventListener('hidden.bs.modal', function () {
             document.getElementById('user-note').value = '';
             document.querySelectorAll('input[name="category"]').forEach(radio => {
                 radio.checked = false;
             });
         });
     }
-}
-
-// Error handling
-function handleError(error, context = '') {
-    console.error(`${context} Hata:`, error);
-
-    let errorMessage = 'Bir hata oluştu';
-    if (error.response) {
-        // API'den gelen hata
-        errorMessage = error.response.data?.message || 'Sunucu hatası oluştu';
-    } else if (error.request) {
-        // İstek yapılamadı
-        errorMessage = 'Sunucuya ulaşılamıyor';
-    } else if (typeof error === 'string') {
-        errorMessage = error;
-    }
-
-    showAlert(errorMessage, 'danger');
-}
-
-// Validation fonksiyonları
-function validatePhoneNumber(phone) {
-    return {
-        isValid: /^\d{10}$/.test(phone),
-        message: phone.length !== 10 ? 'Telefon numarası 10 haneli olmalıdır' : ''
-    };
-}
-
-function validateRequiredFields(fields) {
-    const emptyFields = Object.entries(fields)
-        .filter(([_, value]) => !value?.trim())
-        .map(([key, _]) => key);
-
-    return {
-        isValid: emptyFields.length === 0,
-        message: emptyFields.length > 0 ? `Lütfen ${emptyFields.join(', ')} alanlarını doldurunuz` : ''
-    };
 }
 
 // Initialize
@@ -927,11 +1003,13 @@ function validateRequiredFields(fields) {
         // URL parametrelerini kontrol et
         checkUrlParameters();
 
-        console.log('Firebase dinleyicisi başlatılıyor...');
         setupFirebaseCallListener();
 
         // Modal kapatma butonlarına event listener ekle
         setupModalListeners();
+
+        // Kategori verilerini doldurmak için çağrı
+        populateCategories();
     });
 
     // URL parametrelerini kontrol et
@@ -956,6 +1034,7 @@ window.filterPhones = filterPhones;
 window.filterNotes = filterNotes;
 window.filterInstallments = filterInstallments;
 window.savePhone = savePhone;
+window.saveNote = saveNote;
 window.loadAttributes = loadAttributes;
 
 // Stil tanımlamaları

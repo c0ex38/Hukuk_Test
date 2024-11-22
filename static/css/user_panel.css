@@ -1,74 +1,151 @@
-/* Kullanıcı Bilgileri Kartı */
-.user-card {
-    background: linear-gradient(135deg, #4e73df, #1cc88a);
-    color: #fff;
-    border-radius: 10px;
-    padding: 20px;
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #4e73df 0%, #224abe 100%);
 }
 
-.user-card .card-title {
-    font-weight: bold;
+.bg-gradient-success {
+    background: linear-gradient(45deg, #1cc88a 0%, #13855c 100%);
 }
 
-.gradient-bg {
-    background: linear-gradient(135deg, #007bff, #4e73df);
+.bg-gradient-info {
+    background: linear-gradient(45deg, #36b9cc 0%, #258391 100%);
 }
 
-/* İstatistik Kartları */
+/* Card Styles */
 .stat-card {
-    background-color: #f8f9fc;
-    border-radius: 10px;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: none;
 }
 
 .stat-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15)!important;
 }
 
-.stat-card .card-subtitle {
-    font-size: 0.9rem;
-    color: #6c757d;
+.icon-shape {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
 }
 
-.stat-number {
+/* User Profile */
+.user-profile-card {
+    border: none;
+    background: #fff;
+}
+
+.avatar-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-img {
+    width: 120px;
+    height: 120px;
+    border: 3px solid #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    height: 100%;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 20px;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4e73df;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+/* Device Info */
+.device-info-item {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+}
+
+.device-info-item i {
+    width: 20px;
     color: #4e73df;
-    font-weight: bold;
 }
 
-/* Kısayol Kartları */
-.shortcut-card {
-    border-radius: 10px;
-    transition: transform 0.3s ease;
+/* Table Styles */
+.table > :not(caption) > * > * {
+    padding: 1rem;
 }
 
-.shortcut-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+.table td {
+    vertical-align: middle;
 }
 
-.shortcut-icon {
-    color: #4e73df;
-    transition: color 0.3s ease;
-}
-
-.shortcut-icon:hover {
-    color: #1cc88a;
-}
-
-/* Genel Stil */
-.card-title {
-    font-weight: bold;
-    color: #343a40;
-}
-
-/* Buton Stili */
-.btn-outline-primary {
-    border-color: #4e73df;
-    color: #4e73df;
-}
-
-.btn-outline-primary:hover {
+/* Button Styles */
+.btn-group .btn-outline-primary.active {
     background-color: #4e73df;
     color: #fff;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+
+    .timeline-item {
+        padding-left: 40px;
+    }
+
+    .avatar-img {
+        width: 100px;
+        height: 100px;
+    }
 }

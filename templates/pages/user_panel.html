@@ -8,38 +8,40 @@
     <!-- Kullanıcı Bilgileri Kartı -->
     <div class="row mb-5">
         <div class="col-md-4">
-            <div class="card shadow-sm user-card text-center gradient-bg">
+            <div class="card shadow-lg border-0 rounded-4 user-card text-center gradient-bg">
                 <div class="card-body">
-                    <img src="{% static 'images/logo_app.png' %}" alt="User Profile" class="rounded-circle mb-3" width="100" height="100">
-                    <h5 class="card-title">{{ username }}</h5>
-                    <h5 class="card-title">{{ admin }}</h5>
+                    <img src="{% static 'images/logo_app.png' %}" alt="User Profile" class="rounded-circle mb-3 border border-3 border-primary" width="120" height="120">
+                    <h5 class="card-title fw-bold text-primary" id="username-display">{{ username }}</h5>
+                    <p class="card-text text-muted" id="last-login">Son Giriş: Yükleniyor...</p>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
             <!-- İstatistik Kartları -->
-            <div class="row">
+            <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="card shadow-sm stat-card text-center">
+                    <div class="card shadow-sm border-0 stat-card text-center rounded-4">
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2">Toplam Müşteri</h6>
-                            <p class="display-4 stat-number">320</p>
+                            <h6 class="card-subtitle mb-2 text-uppercase text-muted">Toplam Arama</h6>
+                            <p class="display-4 stat-number fw-bold text-primary" id="total-calls">0</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card shadow-sm stat-card text-center">
+                    <div class="card shadow-sm border-0 stat-card text-center rounded-4">
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2">Bu Ayın Raporu</h6>
-                            <p class="display-4 stat-number">25</p>
+                            <h6 class="card-subtitle mb-2 text-uppercase text-muted">Başarılı Aramalar</h6>
+                            <p class="display-4 stat-number fw-bold text-success" id="successful-calls">0</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card shadow-sm stat-card text-center">
+                    <div class="card shadow-sm border-0 stat-card text-center rounded-4">
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2">Aktif Görevler</h6>
-                            <p class="display-4 stat-number">12</p>
+                            <h6 class="card-subtitle mb-2 text-uppercase text-muted">Servis Durumu</h6>
+                            <p class="display-4" id="service-status">
+                                <i class="fas fa-circle-notch fa-spin text-info"></i>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -47,26 +49,123 @@
         </div>
     </div>
 
+    <!-- Son Aramalar Tablosu -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-header bg-primary text-white rounded-top-4">
+            <h5 class="card-title mb-0">Son Aramalar</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center" id="recent-calls-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Telefon Numarası</th>
+                            <th>Tarih</th>
+                            <th>Durum</th>
+                            <th>Süre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Kısayol Kartları -->
-    <div class="row">
+    <div class="row g-4">
         <div class="col-md-4">
-            <div class="card shortcut-card shadow-sm text-center">
+            <div class="card shortcut-card shadow-sm border-0 text-center rounded-4">
                 <div class="card-body">
-                    <i class="fas fa-users fa-3x mb-3 shortcut-icon"></i>
-                    <h6 class="card-title">Müşteri</h6>
-                    <a href="{% url 'homepage' %}" class="btn btn-outline-primary mt-2">Görüntüle</a>
+                    <i class="fas fa-users fa-3x mb-3 text-primary shortcut-icon"></i>
+                    <h6 class="card-title fw-bold">Müşteri</h6>
+                    <a href="{% url 'homepage' %}" class="btn btn-primary mt-2">Görüntüle</a>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shortcut-card shadow-sm text-center">
+            <div class="card shortcut-card shadow-sm border-0 text-center rounded-4">
                 <div class="card-body">
-                    <i class="fas fa-chart-line fa-3x mb-3 shortcut-icon"></i>
-                    <h6 class="card-title">Müşteri Listem</h6>
-                    <a href="{% url 'customer_search' %}" class="btn btn-outline-primary mt-2">Görüntüle</a>
+                    <i class="fas fa-chart-line fa-3x mb-3 text-success shortcut-icon"></i>
+                    <h6 class="card-title fw-bold">Müşteri Listem</h6>
+                    <a href="{% url 'customer_search' %}" class="btn btn-success mt-2">Görüntüle</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Firebase işlemleri için JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentUsername = '{{ username }}';
+
+    // Kullanıcı verilerini dinle
+    const userRef = firebase.database().ref(`users/${currentUsername}`);
+    userRef.on('value', (snapshot) => {
+        const userData = snapshot.val();
+        if (!userData) return;
+
+        // Kullanıcı durumunu güncelle
+        updateUserInfo(userData);
+
+        // Arama istatistiklerini güncelle
+        updateCallStats(userData.call_events);
+
+        // Son aramaları güncelle
+        updateRecentCalls(userData.call_events);
+
+        // Servis durumunu güncelle
+        updateServiceStatus(userData.service_status);
+    });
+
+    function updateUserInfo(userData) {
+        // Son giriş bilgisini güncelle
+        const lastLogin = userData.login_web || userData.login_mobile || 'Bilgi yok';
+        document.getElementById('last-login').textContent = `Son Giriş: ${lastLogin}`;
+    }
+
+    function updateCallStats(callEvents) {
+        if (!callEvents) return;
+
+        const events = Object.values(callEvents);
+        const totalCalls = events.filter(e => e.eventType === 'call_started').length;
+        const successfulCalls = events.filter(e => e.eventType === 'call_successful').length;
+
+        document.getElementById('total-calls').textContent = totalCalls;
+        document.getElementById('successful-calls').textContent = successfulCalls;
+    }
+
+    function updateServiceStatus(status) {
+        const statusElement = document.getElementById('service-status');
+        statusElement.innerHTML = status ?
+            '<i class="fas fa-check-circle text-success fa-2x"></i>' :
+            '<i class="fas fa-times-circle text-danger fa-2x"></i>';
+    }
+
+    function updateRecentCalls(callEvents) {
+        if (!callEvents) return;
+
+        const tbody = document.getElementById('recent-calls-table').querySelector('tbody');
+        const events = Object.entries(callEvents)
+            .map(([key, value]) => ({...value, key}))
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 5);  // Son 5 arama
+
+        tbody.innerHTML = events.map(event => `
+            <tr>
+                <td>${event.phoneNumber}</td>
+                <td>${new Date(event.timestamp).toLocaleString()}</td>
+                <td>
+                    <span class="badge ${event.eventType === 'call_successful' ? 'bg-success' : 'bg-primary'}">
+                        ${event.eventType === 'call_successful' ? 'Başarılı' : 'Başlatıldı'}
+                    </span>
+                </td>
+                <td>${event.duration || '-'}</td>
+            </tr>
+        `).join('');
+    }
+});
+</script>
 {% endblock %}
